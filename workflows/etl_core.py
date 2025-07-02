@@ -43,7 +43,7 @@ def save_to_postgres(df: pd.DataFrame, ticker: str, exchange: str, table_name: s
     print(f"✅ Saved {len(df)} rows to table '{table_name}' for {ticker}")
 
 
-@flow
+@flow(name="etl_flow")
 def etl_flow(ticker: str, exchange: str = "US", period: str = "1y"):
     """
     完整 ETL 流程：下載 → 清理 → 儲存
@@ -52,11 +52,11 @@ def etl_flow(ticker: str, exchange: str = "US", period: str = "1y"):
     raw_data = download_stock_data(ticker, period)
     clean_data = clean_stock_data(raw_data)
     save_to_postgres(clean_data, ticker, exchange)
-    print(clean_data.tail())
+    # print(clean_data.tail())
 
 
-if __name__ == "__main__":
-    # 多支股票可重複呼叫
-    etl_flow("AAPL", "US")
-    etl_flow("TSM", "US")  # 台積電美股 ADR
-    etl_flow("2330.TW", "TW")  # 台股，需考慮 yfinance 地區支援
+# if __name__ == "__main__":
+#     # 多支股票可重複呼叫
+#     etl_flow("AAPL", "US")
+#     etl_flow("TSM", "US")  # 台積電美股 ADR
+#     etl_flow("2330.TW", "TW")  # 台股，需考慮 yfinance 地區支援

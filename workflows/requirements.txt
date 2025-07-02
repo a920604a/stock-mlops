@@ -1,5 +1,7 @@
-prefect
+prefect>=2.16.3
 pandas
 yfinance
 sqlalchemy
 psycopg2-binary
+python-dotenv
+websockets>=10.0

@@ -12,7 +12,7 @@ services:
   backend:
     build:
       context: ./backend/api
-      dockerfile: Dockerfile.backend
+      dockerfile: ../Dockerfile.backend
     ports:
       - "8000:8000"
     depends_on:
@@ -31,7 +31,7 @@ services:
     ports:
       - "8229:8229"
     depends_on:
-      - backend
+      - db
       - mlflow
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/stocks
@@ -57,7 +57,7 @@ services:
       - "5412:5432"
     volumes:
       - ./db/pgdata:/var/lib/postgresql/data
-      - ./db/init-scripts:/docker-entrypoint-initdb.d
+      # - ./db/init-scripts:/docker-entrypoint-initdb.d
 
   redis:
     image: redis:7
@@ -68,7 +68,7 @@ services:
     image: ghcr.io/mlflow/mlflow:v2.10.0
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlruns
     ports:
-      - "5000:5000"
+      - "5010:5000"
     volumes:
       - ./mlruns:/mlruns
 
