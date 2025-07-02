@@ -57,6 +57,7 @@ services:
       - "5412:5432"
     volumes:
       - ./db/pgdata:/var/lib/postgresql/data
+      - ./db/init-scripts:/docker-entrypoint-initdb.d
 
   redis:
     image: redis:7
