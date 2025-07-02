@@ -1,3 +1,4 @@
+```
 stock-mlops-project/
 ├── frontend/                # React 前端應用程式
 │   └── ...
@@ -30,3 +31,5 @@ stock-mlops-project/
 ├── requirements.txt
 ├── .pre-commit-config.yaml
 └── README.md
+
+```
