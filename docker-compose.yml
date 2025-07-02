@@ -1,0 +1,86 @@
+version: "3.9"
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend/api
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+      - mlflow
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/stocks
+      - REDIS_HOST=redis
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+
+  workflows:
+    build:
+      context: ./workflows
+      dockerfile: ../Dockerfile.workflow
+    ports:
+      - "8229:8229"
+    depends_on:
+      - backend
+      - mlflow
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/stocks
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+
+  monitor:
+    build:
+      context: ./monitor
+      dockerfile: ../Dockerfile.monitor
+    ports:
+      - "9100:9100" # 監控指標出口給 Prometheus 抓取
+    depends_on:
+      - backend
+      - prometheus
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: stocks
+    ports:
+      - "5412:5432"
+    volumes:
+      - ./db/pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.0
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlruns
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana-oss
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./monitor/grafana:/var/lib/grafana
