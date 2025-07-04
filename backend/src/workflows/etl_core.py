@@ -2,21 +2,33 @@ from prefect import flow, task
 import yfinance as yf
 import pandas as pd
 from sqlalchemy import create_engine
+import time
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+# yf.enable_debug_mode()
 
 
-@task
-def download_stock_data(ticker: str, period: str = "1y") -> pd.DataFrame:
+
+@task(retries=3, retry_delay_seconds=10)
+def download_stock_data(ticker: str, period: str = "1m") -> pd.DataFrame:
     """
-    從 Yahoo Finance 下載股票資料
+    從 Yahoo Finance 下載股票資料，失敗時會重試
     """
-    stock = yf.Ticker(ticker)
-    df = stock.history(period=period).reset_index()
-    return df
-
+    attempt = 0
+    while attempt < 3:
+        try:
+            stock = yf.Ticker(ticker)
+            df = stock.history(period=period).reset_index()
+            if df.empty:
+                raise ValueError("No data found for ticker: " + ticker)
+            return df
+        except Exception as e:
+            attempt += 1
+            print(f"❌ Attempt {attempt} failed for {ticker}: {e}")
+            time.sleep(10)
+    raise RuntimeError(f"Failed to download stock data for {ticker} after 3 retries")
 
 @task
 def clean_stock_data(df: pd.DataFrame) -> pd.DataFrame:
