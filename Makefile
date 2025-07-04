@@ -10,18 +10,18 @@ DOCKER_COMPOSE = docker compose
 up:
 	$(DOCKER_COMPOSE) up --build -d
 
-# ✅ 僅啟動核心服務：db + mlflow + workflows
+# ✅ 僅啟動核心服務：db + mlflow + backend
 up-core:
-	$(DOCKER_COMPOSE) up --build -d db mlflow workflows
+	$(DOCKER_COMPOSE) up --build -d db mlflow backend
 
 # 關閉所有服務
 down:
 	$(DOCKER_COMPOSE) down
 
-# 查看服務 log（包含 workflows）
+# 查看服務 log（包含 backend）
 logs:
-	$(DOCKER_COMPOSE) logs -f workflows
+	$(DOCKER_COMPOSE) logs -f backend
 
-# 重新啟動 workflows + 依賴
+# 重新啟動 backend + 依賴
 restart-core:
-	$(DOCKER_COMPOSE) restart db mlflow workflows
+	$(DOCKER_COMPOSE) restart db mlflow backend

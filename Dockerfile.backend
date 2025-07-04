@@ -1,21 +1,25 @@
-# Dockerfile.backend
+# 使用較新版本的 Python 作為基底
+FROM python:3.11-slim
 
-FROM python:3.10-slim
+# 環境變數設定
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# 設定工作目錄
+# 安裝系統相依套件
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 建立工作目錄
 WORKDIR /app
 
-# 複製並安裝依賴
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 複製後端相關檔案（包含 api, src, model_runner 等）
+COPY . /app
+COPY requirements.txt ./
 
-# 複製程式碼
-COPY ./api ./api
-COPY ./src ./src
-COPY ./workflows ../workflows
+# 安裝 Python 套件
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# 開放 FastAPI 預設埠
-EXPOSE 8000
-
-# 啟動 uvicorn，監聽所有接口
-CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# 預設啟動 FastAPI 伺服器
+CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

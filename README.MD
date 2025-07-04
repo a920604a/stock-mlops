@@ -1,35 +1,60 @@
 ```
 stock-mlops-project/
-├── frontend/                # React 前端應用程式
-│   └── ...
-├── backend/
-│   ├── api/                     # FastAPI 應用程式
-│   ├── app.py                   # 主 REST API 路由
-│   ├── model_runner.py          # 載入模型並執行預測邏輯
-│   ├── src/                     # 資料處理與模型邏輯
+├── frontend/                         # React 前端應用程式
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── App.tsx
+│   └── package.json
+
+├── backend/                          # 後端服務
+│   ├── api/                          # FastAPI API 層
+│   │   ├── main.py
+│   │   ├── routes/
+│   │   │   ├── predict.py
+│   │   │   └── health.py
+│   │   ├── schemas/
+│   │   │   └── predict_request.py
+│   │   └── utils/
+│   │       └── cache.py
+│   ├── app.py                        # API 主執行點（可選）
+│   ├── model_runner.py              # 模型推論封裝
+│   ├── src/                          # 核心邏輯與 workflow
 │   │   ├── data_loader.py
 │   │   ├── features.py
 │   │   ├── train.py
-│   │   └── predict.py
-│   └── data/                    # 原始與處理後資料
+│   │   ├── predict.py
+│   │   └── workflows/
+│   │       └── training_flow.py
+│   └── data/
 │       ├── raw/
 │       └── processed/
-├── workflows/               # Prefect workflow 任務定義
-│   └── training_flow.py
-├── monitor/                 # 模型監控（Evidently metrics exporter）
-│   └── monitor.py
-├── mlruns/                  # MLflow 模型與指標儲存（本地）
+
+├── monitor/                          # 模型與資料監控
+│   ├── monitor.py
+│   ├── prometheus.yml
+│   └── grafana/
+
+├── mlruns/                           # MLflow 實驗與模型儲存目錄
+
+├── db/                               # PostgreSQL Volume 與初始化
+│   ├── pgdata/
+│   └── init.sql                      # 初始建表 SQL（可選）
+
 ├── .github/
 │   └── workflows/
-│       └── ci.yml           # GitHub Actions CI 設定檔
-├── docker-compose.yml       # 多服務整合配置
-├── Dockerfile.backend       # FastAPI Dockerfile
-├── Dockerfile.frontend      # React Dockerfile
-├── Dockerfile.monitor      # Monitor 專用 Dockerfile
-├── Dockerfile.workflow     # Workflow 專用 Dockerfile
-├── Makefile
-├── requirements.txt
-├── .pre-commit-config.yaml
-└── README.md
+│       └── ci.yml                    # GitHub Actions 設定
 
+├── Dockerfile.backend                # backend FastAPI 映像檔建構
+├── Dockerfile.frontend              # frontend React 映像檔建構
+├── Dockerfile.monitor               # monitor 模組建構（如有需要）
+├── docker-compose.yml               # 所有服務的協作與啟動設定
+
+├── .env                              # 本地用環境變數檔（不提交）
+├── .env.example                      # 提供參考的範例環境變數檔
+├── .pre-commit-config.yaml           # 格式檢查與 Lint 工具
+├── Makefile                          # CLI 工具集合
+├── README.md                         # 專案說明文件
+└── .gitignore
 ```

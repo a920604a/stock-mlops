@@ -54,9 +54,3 @@ def etl_flow(ticker: str, exchange: str = "US", period: str = "1y"):
     save_to_postgres(clean_data, ticker, exchange)
     # print(clean_data.tail())
 
-
-# if __name__ == "__main__":
-#     # 多支股票可重複呼叫
-#     etl_flow("AAPL", "US")
-#     etl_flow("TSM", "US")  # 台積電美股 ADR
-#     etl_flow("2330.TW", "TW")  # 台股，需考慮 yfinance 地區支援

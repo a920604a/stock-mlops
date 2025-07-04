@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   frontend:
     build:
@@ -11,7 +10,7 @@ services:
 
   backend:
     build:
-      context: ./backend/api
+      context: ./backend
       dockerfile: ../Dockerfile.backend
     ports:
       - "8000:8000"
@@ -23,21 +22,8 @@ services:
       - DATABASE_URL=postgresql://user:password@db:5432/stocks
       - REDIS_HOST=redis
       - MLFLOW_TRACKING_URI=http://mlflow:5000
-
-  workflows:
-    build:
-      context: ./workflows
-      dockerfile: ../Dockerfile.workflow
-    ports:
-      - "8229:8229"
-    depends_on:
-      - db
-      - mlflow
     volumes:
-      - ./workflows:/app
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/stocks
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - ./backend:/app
 
   monitor:
     build:
