@@ -21,3 +21,5 @@ def predict(data: PredictRequest):
     X = np.array([[data.MA10]])
     pred = model.predict(X)
     return {"predicted_close": float(pred[0])}
+
+

@@ -1,43 +1,38 @@
 import mlflow
 import mlflow.sklearn
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+import xgboost as xgb
 from sklearn.model_selection import train_test_split
-from sqlalchemy import create_engine
-import os
+from sklearn.metrics import mean_squared_error
+from data_loader import load_stock_data
 
-from dotenv import load_dotenv
-load_dotenv()
+def prepare_features(df: pd.DataFrame):
+    # 假設用 MA10 做示範，你可以依需求加入更多特徵
+    X = df[["MA10"]].fillna(method="ffill").fillna(0)
+    y = df["Close"].shift(-1).fillna(method="ffill")  # 預測下一天的收盤價
+    return X[:-1], y[:-1]
 
-def load_data():
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    engine = create_engine(DATABASE_URL)
-    query = "SELECT Close, MA10 FROM stock_data"
-    df = pd.read_sql(query, con=engine)
-    df = df.dropna()
-    return df
+def train_and_register(ticker: str, exchange: str):
+    df = load_stock_data(ticker, exchange)
+    X, y = prepare_features(df)
 
-def train_model():
-    df = load_data()
-    X = df[["MA10"]]
-    y = df["Close"]
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, shuffle=False)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    model = LinearRegression()
-
-    mlflow.start_run()
+    model = xgb.XGBRegressor(objective="reg:squarederror", n_estimators=100)
     model.fit(X_train, y_train)
-    score = model.score(X_test, y_test)
 
-    mlflow.log_param("model_type", "LinearRegression")
-    mlflow.log_metric("r2_score", score)
-    mlflow.sklearn.log_model(model, "model")
+    preds = model.predict(X_val)
+    rmse = mean_squared_error(y_val, preds, squared=False)
 
-    mlflow.end_run()
+    print(f"Validation RMSE: {rmse}")
 
-    print(f"Trained LinearRegression model with R2 score: {score:.4f}")
-    return model
+    # 使用 MLflow 註冊模型
+    mlflow.set_experiment("stock_price_prediction")
+    with mlflow.start_run():
+        mlflow.log_param("ticker", ticker)
+        mlflow.log_metric("rmse", rmse)
+        mlflow.sklearn.log_model(model, "model")
+        print("Model registered to MLflow")
 
 if __name__ == "__main__":
-    train_model()
+    train_and_register("AAPL", "US")
