@@ -1,11 +1,18 @@
 # Makefile
 
 # DOCKER_COMPOSE = docker-compose
-DOCKER_COMPOSE = docker compose
+DOCKER_COMPOSE = docker compose 
 
 
-.PHONY: up up-core down logs restart-core
+.PHONY: up up-core down logs restart-core clean
 
+init:
+	mkdir data/prometheus_data
+clean:
+	$(DOCKER_COMPOSE) down --volumes
+	rm -rf data/prometheus_data db/pgdata
+	
+	
 # 啟動所有服務
 up:
 	$(DOCKER_COMPOSE) up --build -d

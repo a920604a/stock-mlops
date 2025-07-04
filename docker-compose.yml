@@ -1,12 +1,12 @@
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: ../Dockerfile.frontend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
 
   backend:
     build:
@@ -25,15 +25,6 @@ services:
     volumes:
       - ./backend:/app
 
-  monitor:
-    build:
-      context: ./monitor
-      dockerfile: ../Dockerfile.monitor
-    ports:
-      - "9100:9100" # 監控指標出口給 Prometheus 抓取
-    depends_on:
-      - backend
-      - prometheus
 
   db:
     image: postgres:15
@@ -62,14 +53,17 @@ services:
 
   prometheus:
     image: prom/prometheus
+    user: "1000"
     volumes:
-      - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitor/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/prometheus_data:/prometheus
     ports:
       - "9090:9090"
-
   grafana:
-    image: grafana/grafana-oss
+    image: grafana/grafana-enterprise
+    user: "472"
     ports:
       - "3001:3000"
     volumes:
-      - ./monitor/grafana:/var/lib/grafana
+      - ./monitor/dashboards:/opt/grafana/dashboards
+    restart: always

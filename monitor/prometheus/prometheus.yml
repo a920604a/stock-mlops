@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 15s        # 每 15 秒抓取一次指標
+  evaluation_interval: 15s
+
+scrape_configs:
+  # 抓取 Prometheus 自身的指標
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 抓取 monitor 服務指標 (Evidently exporter)
+  - job_name: 'monitor'
+    static_configs:
+      - targets: ['monitor:9100']
