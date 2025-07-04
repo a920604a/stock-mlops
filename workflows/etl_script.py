@@ -10,3 +10,6 @@ def etl_flow_with_schedule():
     ]
     for ticker, exchange in tickers:
         etl_flow(ticker, exchange)
+        
+if __name__ == "__main__":
+    etl_flow_with_schedule()

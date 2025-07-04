@@ -33,6 +33,8 @@ services:
     depends_on:
       - db
       - mlflow
+    volumes:
+      - ./workflows:/app
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/stocks
       - MLFLOW_TRACKING_URI=http://mlflow:5000

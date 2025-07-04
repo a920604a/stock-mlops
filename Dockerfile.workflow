@@ -1,10 +1,11 @@
-FROM prefecthq/prefect:2.16.3-python3.10
+FROM python:3.10-slim
 
 WORKDIR /app
-# 因為 build context 是 ./workflows，所以直接複製所有檔案
 
-COPY . /app/
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install -r requirements.txt
+COPY . /app
 
-CMD ["prefect", "agent", "start", "-q", "default"]
+# 直接執行你的 main.py（裡面有呼叫 etl_flow_with_schedule）
+CMD ["python", "etl_script.py"]
