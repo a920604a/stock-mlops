@@ -1,6 +1,6 @@
 # backend/src/data_loader.py
-from .database import SessionLocal
-from .models import StockPrice
+from src.database import SessionLocal
+from src.models import StockPrice
 import pandas as pd
 
 def load_stock_data(ticker: str, exchange: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:

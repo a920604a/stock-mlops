@@ -4,7 +4,7 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
-from data_loader import load_stock_data
+from src.data_loader import load_stock_data
 
 def prepare_features(df: pd.DataFrame):
     # 假設用 MA10 做示範，你可以依需求加入更多特徵
@@ -22,7 +22,9 @@ def train_and_register(ticker: str, exchange: str):
     model.fit(X_train, y_train)
 
     preds = model.predict(X_val)
-    rmse = mean_squared_error(y_val, preds, squared=False)
+    # rmse = mean_squared_error(y_val, preds, squared=False)
+    rmse = mean_squared_error(y_val, preds) ** 0.5
+
 
     print(f"Validation RMSE: {rmse}")
 
@@ -33,6 +35,8 @@ def train_and_register(ticker: str, exchange: str):
         mlflow.log_metric("rmse", rmse)
         mlflow.sklearn.log_model(model, "model")
         print("Model registered to MLflow")
+        
+    return rmse
 
 if __name__ == "__main__":
     train_and_register("AAPL", "US")

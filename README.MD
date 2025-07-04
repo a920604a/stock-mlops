@@ -28,6 +28,7 @@ stock-mlops-project/
 │   │   ├── models.py                # 已完成：定義 ORM 模型 StockData
 │   │   └── workflows/
 │   │       └── training_flow.py
+│   └── tests/
 │   └── data/
 │       ├── raw/
 │       └── processed/

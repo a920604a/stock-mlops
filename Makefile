@@ -2,9 +2,10 @@
 
 # DOCKER_COMPOSE = docker-compose
 DOCKER_COMPOSE = docker compose 
+BACKEND_SERVICE = backend
 
 
-.PHONY: up up-core down logs restart-core clean
+.PHONY: up up-core down logs restart-core clean ingest test
 
 clean:
 	$(DOCKER_COMPOSE) down --volumes
@@ -36,3 +37,9 @@ logs:
 # 重新啟動 backend + 依賴
 restart-core:
 	$(DOCKER_COMPOSE) restart db mlflow backend
+
+
+
+
+test:
+	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) pytest -v tests/test_predict.py

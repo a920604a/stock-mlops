@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
 # 建立工作目錄
 WORKDIR /app
 
+# ✅ 設定 PYTHONPATH 指向 /app（對應 backend 目錄）
+ENV PYTHONPATH=/app
+
 # 複製後端相關檔案（包含 api, src, model_runner 等）
 COPY . /app
 COPY requirements.txt ./
