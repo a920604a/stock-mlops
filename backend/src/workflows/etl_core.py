@@ -12,7 +12,7 @@ load_dotenv()
 
 
 @task(retries=3, retry_delay_seconds=10)
-def download_stock_data(ticker: str, period: str = "1m") -> pd.DataFrame:
+def download_stock_data(ticker: str, period: str = "1y") -> pd.DataFrame:
     """
     從 Yahoo Finance 下載股票資料，失敗時會重試
     """
