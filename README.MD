@@ -21,10 +21,11 @@ stock-mlops-project/
 │   ├── app.py                        # API 主執行點（可選）
 │   ├── model_runner.py              # 模型推論封裝
 │   ├── src/                          # 核心邏輯與 workflow
-│   │   ├── data_loader.py
-│   │   ├── features.py
-│   │   ├── train.py
-│   │   ├── predict.py
+│   │   ├── data_loader.py           # 從資料庫讀取股價資料
+│   │   ├── features.py              # 建立技術指標（如 MA10、可擴充）
+│   │   ├── train.py                 # 模型訓練並註冊至 MLflow
+│   │   ├── predict.py               # 模型載入與推論
+│   │   ├── models.py                # 已完成：定義 ORM 模型 StockData
 │   │   └── workflows/
 │   │       └── training_flow.py
 │   └── data/

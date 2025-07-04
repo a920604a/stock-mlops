@@ -6,16 +6,20 @@ DOCKER_COMPOSE = docker compose
 
 .PHONY: up up-core down logs restart-core clean
 
-init:
-	mkdir data/prometheus_data
 clean:
 	$(DOCKER_COMPOSE) down --volumes
 	rm -rf data/prometheus_data db/pgdata
 	
-	
+init:
+	mkdir data/prometheus_data	
+
 # 啟動所有服務
 up:
 	$(DOCKER_COMPOSE) up --build -d
+
+ingest:
+	bash scripts/ingest.sh
+
 
 # ✅ 僅啟動核心服務：db + mlflow + backend
 up-core:
