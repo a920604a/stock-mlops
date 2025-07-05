@@ -1,6 +1,7 @@
 import mlflow
 import mlflow.sklearn
 import pandas as pd
+from typing import Optional
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
@@ -55,7 +56,7 @@ def train_model(X, y, config: TrainConfig):
 
 
 
-def log_model_to_mlflow(model, rmse, ticker, features):
+def log_model_to_mlflow(model, rmse, ticker, features, train_start_time, train_end_time):
     mlflow.set_tracking_uri("http://mlflow:5000")
     mlflow.set_experiment("stock_price_prediction")
 
@@ -73,29 +74,55 @@ def log_model_to_mlflow(model, rmse, ticker, features):
             run_id=run.info.run_id,
             model_uri=model_uri,
             features=features,
-            rmse=rmse
+            rmse=rmse,
+            train_start_time=train_start_time,
+            train_end_time=train_end_time
         )
 
         print("✅ Model registered to MLflow")
 
 
-def train_and_register(ticker: str, exchange: str, config: TrainConfig):
-    df = load_stock_data(ticker, exchange)
+def train_and_register(
+    ticker: str,
+    exchange: str,
+    config: TrainConfig,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    df = load_stock_data(ticker, exchange, start_date, end_date)
     X, y = prepare_features(df, config.feature_columns)
+    train_start_time = df["Date"].iloc[0]
+    train_end_time = df["Date"].iloc[-1]
     model, rmse = train_model(X, y, config)
-    log_model_to_mlflow(model, rmse, ticker, config.feature_columns)
+    log_model_to_mlflow(
+        model,
+        rmse,
+        ticker,
+        config.feature_columns,
+        train_start_time,
+        train_end_time
+    )
 
+    print(f"訓練完成，RMSE：{rmse:.4f}")
+    print(f"訓練資料區間：{train_start_time} ~ {train_end_time}")
     return rmse
 
 
 
 if __name__ == "__main__":
     config = TrainConfig(
-        model_type="xgboost", 
+        model_type="xgboost",
         shuffle=True,
         n_estimators=200,
         feature_columns=[
             "MA5", "MA10", "EMA12", "EMA26", "MACD", "MACD_signal", "MACD_hist"
-        ]
+        ],
     )
-    train_and_register("AAPL", "US", config)
+    
+    train_and_register(
+        "AAPL",
+        "US",
+        config,
+        start_date="2025-01-01 00:00:00",
+        end_date="2025-06-30 00:00:00"
+    )

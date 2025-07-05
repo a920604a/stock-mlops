@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS model_metadata (
     run_id VARCHAR(100) NOT NULL,
     model_uri TEXT NOT NULL,
     features TEXT[] NOT NULL,
-    rmse FLOAT NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+    model_type VARCHAR,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    train_start_time TIMESTAMP WITHOUT TIME ZONE,
+    train_end_time TIMESTAMP WITHOUT TIME ZONE
 );
