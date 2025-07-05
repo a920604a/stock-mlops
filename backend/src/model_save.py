@@ -12,7 +12,8 @@ def save_model_metadata(
     features: list[str],
     model_type: str,
     train_start_time: datetime,
-    train_end_time: datetime
+    train_end_time: datetime,
+    shuffle: bool
 ):
     """儲存模型 metadata 到 PostgreSQL"""
     session = SessionLocal()
@@ -24,7 +25,8 @@ def save_model_metadata(
             features=features,
             model_type=model_type,            
             train_start_time=train_start_time,
-            train_end_time=train_end_time
+            train_end_time=train_end_time,
+            shuffle=shuffle
         )
         session.add(metadata)
         session.commit()

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, TIMESTAMP, ARRAY
+from sqlalchemy import Column, Integer, String, Boolean, Text, TIMESTAMP, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -10,6 +10,7 @@ class ModelMetadata(Base):
     ticker = Column(String(50), nullable=False)
     run_id = Column(String(100), nullable=False)
     model_uri = Column(Text, nullable=False)
+    shuffle = Column(Boolean)
     features = Column(ARRAY(String), nullable=False)
     model_type = Column(String, nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)

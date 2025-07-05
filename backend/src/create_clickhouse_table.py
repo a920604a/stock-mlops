@@ -14,6 +14,7 @@ def create_clickhouse_table():
         ticker String,
         predicted_close Float64,
         predicted_at DateTime,
+        target_date DateTime,
         model_metadata_id INT
     ) ENGINE = MergeTree()
     ORDER BY (ticker, predicted_at);

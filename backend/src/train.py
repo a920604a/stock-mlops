@@ -1,7 +1,6 @@
 import mlflow
 import mlflow.sklearn
 import pandas as pd
-from typing import Optional
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
@@ -56,14 +55,13 @@ def train_model(X, y, config: TrainConfig):
 
 
 
-def log_model_to_mlflow(model, rmse, ticker, features, train_start_time, train_end_time):
+def log_model_to_mlflow(model,  ticker, config:TrainConfig):
     mlflow.set_tracking_uri("http://mlflow:5000")
     mlflow.set_experiment("stock_price_prediction")
 
     with mlflow.start_run() as run:
         mlflow.log_param("ticker", ticker)
-        mlflow.log_metric("rmse", rmse)
-        mlflow.log_param("features", ",".join(features))
+        mlflow.log_param("features", ",".join(config.feature_columns))
         mlflow.sklearn.log_model(model, "model")
 
         model_uri = f"runs:/{run.info.run_id}/model"
@@ -73,10 +71,11 @@ def log_model_to_mlflow(model, rmse, ticker, features, train_start_time, train_e
             ticker=ticker,
             run_id=run.info.run_id,
             model_uri=model_uri,
-            features=features,
-            rmse=rmse,
-            train_start_time=train_start_time,
-            train_end_time=train_end_time
+            features=config.feature_columns,
+            model_type=config.model_type,
+            train_start_time=config.train_start_time,
+            train_end_time=config.train_end_time,
+            shuffle = config.shuffle
         )
 
         print("✅ Model registered to MLflow")
@@ -85,22 +84,17 @@ def log_model_to_mlflow(model, rmse, ticker, features, train_start_time, train_e
 def train_and_register(
     ticker: str,
     exchange: str,
-    config: TrainConfig,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    config: TrainConfig
 ):
-    df = load_stock_data(ticker, exchange, start_date, end_date)
+    df = load_stock_data(ticker, exchange, config.train_start_time, config.train_end_time)
     X, y = prepare_features(df, config.feature_columns)
     train_start_time = df["Date"].iloc[0]
     train_end_time = df["Date"].iloc[-1]
     model, rmse = train_model(X, y, config)
     log_model_to_mlflow(
         model,
-        rmse,
         ticker,
-        config.feature_columns,
-        train_start_time,
-        train_end_time
+        config
     )
 
     print(f"訓練完成，RMSE：{rmse:.4f}")
@@ -117,12 +111,12 @@ if __name__ == "__main__":
         feature_columns=[
             "MA5", "MA10", "EMA12", "EMA26", "MACD", "MACD_signal", "MACD_hist"
         ],
+        train_start_time="2025-01-01 00:00:00",
+        train_end_time="2025-06-30 00:00:00"
     )
     
     train_and_register(
         "AAPL",
         "US",
-        config,
-        start_date="2025-01-01 00:00:00",
-        end_date="2025-06-30 00:00:00"
+        config
     )
