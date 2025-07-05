@@ -5,3 +5,5 @@ sqlalchemy
 psycopg2-binary
 python-dotenv
 websockets>=10.0
+clickhouse-connect
+pyarrow

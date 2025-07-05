@@ -89,3 +89,16 @@ services:
     volumes:
       - ./monitor/dashboards:/opt/grafana/dashboards
     restart: always
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.3
+    ports:
+      - "8123:8123"   # HTTP 接口 (可用 DBeaver 連線)
+      - "9000:9000"   # Native TCP 協議
+    volumes:
+      - ./olap/clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    
