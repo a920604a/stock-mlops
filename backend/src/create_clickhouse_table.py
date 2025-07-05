@@ -1,6 +1,7 @@
 import os
 import clickhouse_connect
 
+
 def create_clickhouse_table():
     client = clickhouse_connect.get_client(
         host=os.getenv("CLICKHOUSE_HOST", "localhost"),

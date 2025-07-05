@@ -3,6 +3,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 Base = declarative_base()
+
+
 class ModelMetadata(Base):
     __tablename__ = "model_metadata"
 
@@ -16,4 +18,3 @@ class ModelMetadata(Base):
     created_at = Column(TIMESTAMP, nullable=False)
     train_start_time = Column(TIMESTAMP, nullable=True)
     train_end_time = Column(TIMESTAMP, nullable=True)
-

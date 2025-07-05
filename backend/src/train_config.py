@@ -2,13 +2,24 @@ from typing import List, Literal, Optional
 from dataclasses import dataclass, field
 
 FEATURE_COLUMNS = [
-    "Open", "High", "Low", "Close", "Volume",
-    "MA5", "MA10",
-    "EMA12", "EMA26",
-    "MACD", "MACD_signal", "MACD_hist",
-    "BB_upper", "BB_middle", "BB_lower",
-    "VOL_MA10"
+    "Open",
+    "High",
+    "Low",
+    "Close",
+    "Volume",
+    "MA5",
+    "MA10",
+    "EMA12",
+    "EMA26",
+    "MACD",
+    "MACD_signal",
+    "MACD_hist",
+    "BB_upper",
+    "BB_middle",
+    "BB_lower",
+    "VOL_MA10",
 ]
+
 
 @dataclass
 class TrainConfig:
@@ -18,4 +29,3 @@ class TrainConfig:
     n_estimators: int = 100
     train_start_time: Optional[str] = None
     train_end_time: Optional[str] = None
-        

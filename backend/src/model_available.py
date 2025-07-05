@@ -2,6 +2,7 @@ from typing import Optional, List, Union
 from src.model_save import ModelMetadata
 from src.database_oltp import SessionLocal  # 回傳 SQLAlchemy Session
 
+
 def list_models(ticker: Optional[str] = None) -> List[ModelMetadata]:
     session = SessionLocal()
 
@@ -23,7 +24,9 @@ def list_models(ticker: Optional[str] = None) -> List[ModelMetadata]:
     print(header)
     for meta in results:
         # 注意 features 通常是 List 或 JSON，視你的 ModelMetadata 而定
-        features_str = meta.features if isinstance(meta.features, str) else ','.join(meta.features)
+        features_str = (
+            meta.features if isinstance(meta.features, str) else ",".join(meta.features)
+        )
         print(
             f"- ticker={meta.ticker:<6} "
             f"model={meta.model_type:<10} "

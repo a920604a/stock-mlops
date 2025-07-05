@@ -1,7 +1,7 @@
 # Makefile
 
 # DOCKER_COMPOSE = docker-compose
-DOCKER_COMPOSE = docker compose 
+DOCKER_COMPOSE = docker compose
 BACKEND_SERVICE = backend
 
 
@@ -12,7 +12,7 @@ clean:
 	rm -rf db/mlflow_db db/oltp db/model_meta_db db/olap
 	rm -rf data/mlflow_artifacts data/prometheus_data
 	rm -rf data/minio
-	
+
 init:
 	mkdir -p db/mlflow_db db/oltp db/model_meta_db db/olap
 	mkdir -p data/mlflow_artifacts data/prometheus_data data/minio

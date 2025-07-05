@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from src.database_olap import client
 
+
 def load_stock_data(
     ticker: str,
     exchange: str,
@@ -26,17 +27,14 @@ def load_stock_data(
 
     base_query += " ORDER BY Date"
     print(f"base_query {base_query}")
-    
-    
 
     df = client.query_df(base_query)
     return df
 
 
-def get_last_available_date(target_date: datetime, 
-                            ticker: str,
-                            exchange: str
-                            ) -> Optional[datetime]:
+def get_last_available_date(
+    target_date: datetime, ticker: str, exchange: str
+) -> Optional[datetime]:
     # SQL：找 target_date 前所有資料
     base_query = f"""
         SELECT DISTINCT Date
@@ -53,11 +51,12 @@ def get_last_available_date(target_date: datetime,
     if df.empty:
         return None
     # 回傳最接近 target_date 的那天
-    return df.iloc[0]['Date']
+    return df.iloc[0]["Date"]
 
 
-
-def get_close_price(target_date: datetime, ticker: str, exchange: str) -> Optional[float]:
+def get_close_price(
+    target_date: datetime, ticker: str, exchange: str
+) -> Optional[float]:
     date_str = target_date.strftime("%Y-%m-%d")
     """
     查詢指定股票與日期的實際收盤價，若無資料則回傳 None。

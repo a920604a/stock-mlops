@@ -56,7 +56,7 @@ services:
       - ./db/model_meta_db:/var/lib/postgresql/data
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
 
-  
+
   redis:
     image: redis:7
     ports:
@@ -121,7 +121,7 @@ services:
       nofile:
         soft: 262144
         hard: 262144
-    
+
   minio:
     image: minio/minio
     container_name: minio
@@ -145,4 +145,3 @@ services:
       MINIO_ROOT_PASSWORD: mlflow123
     volumes:
       - ./scripts/init_minio.sh:/scripts/init_minio.sh:ro
-
