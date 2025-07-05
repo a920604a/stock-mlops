@@ -1,19 +1,13 @@
-# backend/src/data_loader.py
-from src.database import SessionLocal
-from src.models import StockPrice
+# src/data_loader.py
 import pandas as pd
+from src.database_olap import client
 
-def load_stock_data(ticker: str, exchange: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:
-    session = SessionLocal()
-    query = session.query(StockPrice).filter(
-        StockPrice.ticker == ticker.upper(),
-        StockPrice.exchange == exchange.upper()
-    )
-    if start_date:
-        query = query.filter(StockPrice.Date >= start_date)
-    if end_date:
-        query = query.filter(StockPrice.Date <= end_date)
-    
-    df = pd.read_sql(query.statement, session.bind)
-    session.close()
+def load_stock_data(ticker: str, exchange: str) -> pd.DataFrame:
+    query = f"""
+    SELECT *
+    FROM stock_prices
+    WHERE ticker = '{ticker.upper()}' AND exchange = '{exchange.upper()}'
+    ORDER BY Date
+    """
+    df = client.query_df(query)
     return df

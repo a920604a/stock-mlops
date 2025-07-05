@@ -22,8 +22,16 @@ services:
       - DATABASE_URL=postgresql://user:password@db:5432/stocks
       - REDIS_HOST=redis
       - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=8123
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_DB=default
+      - AWS_ACCESS_KEY_ID=mlflow
+      - AWS_SECRET_ACCESS_KEY=mlflow123
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
     volumes:
       - ./backend:/app
+      # - ./data/mlflow_artifacts:/mlflow_artifacts   # ✅ 新增這行
 
 
   db:
@@ -50,17 +58,21 @@ services:
     depends_on:
       - mlflow-db
     environment:
-      MLFLOW_TRACKING_URI: http://0.0.0.0:5000
+      # MLFLOW_ARTIFACT_ROOT: file:///mlflow_artifacts
+      AWS_ACCESS_KEY_ID: mlflow
+      AWS_SECRET_ACCESS_KEY: mlflow123
+      MLFLOW_ARTIFACT_ROOT: s3://mlflow-artifacts
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     command: >
       mlflow server
       --host 0.0.0.0
       --port 5000
       --backend-store-uri postgresql://mlflow:mlflow@mlflow-db:5432/mlflow
-      --default-artifact-root /mlruns
+      --default-artifact-root s3://mlflow-artifacts
     ports:
       - "5010:5000"
-    volumes:
-      - ./mlflow/mlruns:/mlruns
+    # volumes:
+    #   - ./data/mlflow_artifacts:/mlflow_artifacts
 
   mlflow-db:
     image: postgres:15
@@ -93,7 +105,7 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:23.3
     ports:
-      - "8123:8123"   # HTTP 接口 (可用 DBeaver 連線)
+      - "8123:8123"   # HTTP 接口 (可用 DBeaver 連線) , http://localhost:8123/play, http://localhost:8123/dashboard
       - "9000:9000"   # Native TCP 協議
     volumes:
       - ./olap/clickhouse_data:/var/lib/clickhouse
@@ -102,3 +114,15 @@ services:
         soft: 262144
         hard: 262144
     
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9111:9000"   # API
+      - "9001:9001"   # 控制台, 進入 MinIO web 控制台（http://localhost:9001）登入後： 建立一個 bucket 名為：mlflow-artifacts
+    environment:
+      - MINIO_ROOT_USER=mlflow
+      - MINIO_ROOT_PASSWORD=mlflow123
+    volumes:
+      - ./data/minio:/data

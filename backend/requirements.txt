@@ -13,3 +13,5 @@ python-dotenv==1.0.0
 websockets>=10.0
 pytest
 xgboost
+clickhouse-connect
+boto3
