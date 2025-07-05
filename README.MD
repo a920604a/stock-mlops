@@ -28,9 +28,6 @@ stock-mlops-project/
 │   │   └── workflows/
 │   │       └── etl_script.py
 │   └── tests/
-│   └── data/
-│       ├── raw/
-│       └── processed/
 
 ├── monitor/                          # 模型與資料監控
 │   ├── monitor.py
