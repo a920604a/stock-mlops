@@ -15,11 +15,11 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      - raw_db
       - redis
       - mlflow
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/stocks
+      - DATABASE_URL=postgresql://user:password@model_meta_db:5432/stocks
       - REDIS_HOST=redis
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - CLICKHOUSE_HOST=clickhouse
@@ -31,10 +31,9 @@ services:
       - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
     volumes:
       - ./backend:/app
-      # - ./data/mlflow_artifacts:/mlflow_artifacts   # ✅ 新增這行
 
 
-  db:
+  raw_db: # save raw data OLTP
     image: postgres:15
     environment:
       POSTGRES_USER: user
@@ -43,9 +42,21 @@ services:
     ports:
       - "5412:5432"
     volumes:
-      - ./db/pgdata:/var/lib/postgresql/data
-      - ./db/init-scripts:/docker-entrypoint-initdb.d
+      - ./db/oltp:/var/lib/postgresql/data
 
+  model_meta_db: # save model meta data
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: stocks
+    ports:
+      - "5411:5432"
+    volumes:
+      - ./db/model_meta_db:/var/lib/postgresql/data
+      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+
+  
   redis:
     image: redis:7
     ports:
@@ -105,7 +116,7 @@ services:
       - "8123:8123"   # HTTP 接口 (可用 DBeaver 連線) , http://localhost:8123/play, http://localhost:8123/dashboard
       - "9000:9000"   # Native TCP 協議
     volumes:
-      - ./olap/clickhouse_data:/var/lib/clickhouse
+      - ./db/olap/clickhouse_data:/var/lib/clickhouse
     ulimits:
       nofile:
         soft: 262144
@@ -123,3 +134,15 @@ services:
       - MINIO_ROOT_PASSWORD=mlflow123
     volumes:
       - ./data/minio:/data
+  init-minio:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: /bin/sh
+    command: /scripts/init_minio.sh
+    environment:
+      MINIO_ROOT_USER: mlflow
+      MINIO_ROOT_PASSWORD: mlflow123
+    volumes:
+      - ./scripts/init_minio.sh:/scripts/init_minio.sh:ro
+

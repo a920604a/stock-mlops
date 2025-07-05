@@ -191,7 +191,7 @@ def etl_flow(ticker: str, exchange: str = "US", period: str = "1y"):
 
     processed_df = clean_and_transform(raw_df)
     
-    save_processed_data(processed_df, ticker, exchange)
+    # save_processed_data(processed_df, ticker, exchange)
     
     parquet_path = save_parquet(processed_df, ticker)
     insert_to_clickhouse(processed_df, ticker, exchange) 
