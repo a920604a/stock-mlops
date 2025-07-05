@@ -18,6 +18,8 @@ init:
 # 啟動所有服務
 up:
 	$(DOCKER_COMPOSE) up --build -d
+# clickhouse create table
+# 進入 MinIO web 控制台（http://localhost:9001）登入後： 建立一個 bucket 名為：mlflow-artifacts
 
 ingest:
 	bash scripts/ingest.sh

@@ -58,7 +58,6 @@ services:
     depends_on:
       - mlflow-db
     environment:
-      # MLFLOW_ARTIFACT_ROOT: file:///mlflow_artifacts
       AWS_ACCESS_KEY_ID: mlflow
       AWS_SECRET_ACCESS_KEY: mlflow123
       MLFLOW_ARTIFACT_ROOT: s3://mlflow-artifacts
