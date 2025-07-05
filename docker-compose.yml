@@ -71,8 +71,6 @@ services:
       --default-artifact-root s3://mlflow-artifacts
     ports:
       - "5010:5000"
-    # volumes:
-    #   - ./data/mlflow_artifacts:/mlflow_artifacts
 
   mlflow-db:
     image: postgres:15
