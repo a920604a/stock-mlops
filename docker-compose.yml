@@ -32,7 +32,6 @@ services:
     volumes:
       - ./backend:/app
 
-
   raw_db: # save raw data OLTP
     image: postgres:15
     environment:
@@ -55,7 +54,6 @@ services:
     volumes:
       - ./db/model_meta_db:/var/lib/postgresql/data
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
-
 
   redis:
     image: redis:7
@@ -105,7 +103,7 @@ services:
     image: grafana/grafana-enterprise
     user: "472"
     ports:
-      - "3001:3000"
+      - "3002:3000"
     volumes:
       - ./monitor/dashboards:/opt/grafana/dashboards
     restart: always
@@ -113,8 +111,8 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:23.3
     ports:
-      - "8123:8123"   # HTTP 接口 (可用 DBeaver 連線) , http://localhost:8123/play, http://localhost:8123/dashboard
-      - "9000:9000"   # Native TCP 協議
+      - "8123:8123" # HTTP 接口 (可用 DBeaver 連線) , http://localhost:8123/play, http://localhost:8123/dashboard
+      - "9000:9000" # Native TCP 協議
     volumes:
       - ./db/olap/clickhouse_data:/var/lib/clickhouse
     ulimits:
@@ -127,8 +125,8 @@ services:
     container_name: minio
     command: server /data --console-address ":9001"
     ports:
-      - "9111:9000"   # API
-      - "9001:9001"   # 控制台, 進入 MinIO web 控制台（http://localhost:9001）登入後： 建立一個 bucket 名為：mlflow-artifacts
+      - "9111:9000" # API
+      - "9001:9001" # 控制台, 進入 MinIO web 控制台（http://localhost:9001）登入後： 建立一個 bucket 名為：mlflow-artifacts
     environment:
       - MINIO_ROOT_USER=mlflow
       - MINIO_ROOT_PASSWORD=mlflow123

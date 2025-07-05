@@ -1,9 +1,10 @@
 prefect>=2.16.3
-pandas
 yfinance
 sqlalchemy
-psycopg2-binary
+psycopg2-binary==2.9.9
 python-dotenv
 websockets>=10.0
 clickhouse-connect
-pyarrow
+numpy==1.24.4
+pyarrow==14.0.1
+pandas==2.1.4
