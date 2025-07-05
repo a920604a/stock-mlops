@@ -1,4 +1,4 @@
-# backend/src/database_olap.py
+# src/database_olap.py
 
 import os
 from dotenv import load_dotenv
