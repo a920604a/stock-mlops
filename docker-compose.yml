@@ -44,12 +44,34 @@ services:
       - "6379:6379"
 
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.10.0
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlruns
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    depends_on:
+      - mlflow-db
+    environment:
+      MLFLOW_TRACKING_URI: http://0.0.0.0:5000
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri postgresql://mlflow:mlflow@mlflow-db:5432/mlflow
+      --default-artifact-root /mlruns
     ports:
       - "5010:5000"
     volumes:
-      - ./mlruns:/mlruns
+      - ./mlflow/mlruns:/mlruns
+
+  mlflow-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
+    volumes:
+      - ./db/mlflow_db:/var/lib/postgresql/data
+    ports:
+      - "5422:5432"
 
   prometheus:
     image: prom/prometheus

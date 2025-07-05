@@ -9,7 +9,7 @@ BACKEND_SERVICE = backend
 
 clean:
 	$(DOCKER_COMPOSE) down --volumes
-	rm -rf data/prometheus_data db/pgdata
+	rm -rf data/prometheus_data mlflow/mlruns db/mlflow_db db/pgdata
 	
 init:
 	mkdir data/prometheus_data	
