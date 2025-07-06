@@ -40,7 +40,7 @@ jobs:
         run: pip install -r backend/requirements.txt
 
       - name: Run unit tests
-        run: pytest -v backend/tests
+        run: PYTHONPATH=backend pytest -v backend/tests
 
 
   integration-test:

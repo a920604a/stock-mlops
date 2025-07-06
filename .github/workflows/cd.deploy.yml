@@ -29,8 +29,8 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: Dockerfile.backend
+          context: ./backend
+          file: ./Dockerfile.backend
           push: false
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stock-mlops-backend:latest
 
@@ -60,7 +60,7 @@ jobs:
       - name: Push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: Dockerfile.backend
+          context: ./backend
+          file: ./Dockerfile.backend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stock-mlops-backend:latest
