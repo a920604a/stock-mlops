@@ -1,0 +1,60 @@
+name: CI Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - '**.py'
+      - 'backend/**'
+      - 'scripts/**'
+      - 'Dockerfile.*'
+      - 'Makefile'
+
+
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: stocks
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Quality checks (black, isort, pylint)
+        run: |
+          make quality_checks
+
+      - name: Run Unit Tests
+        run: |
+          make test
+
+      - name: Run Integration Test
+        run: |
+          make integration_test
