@@ -1,5 +1,5 @@
-from prefect import flow
 from etl_core import etl_flow
+from prefect import flow
 
 
 @flow(name="etl_flow_with_schedule", log_prints=True)

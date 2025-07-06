@@ -1,8 +1,8 @@
 # src/data_loader.py
-import pandas as pd
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
 
+import pandas as pd
 from src.database_olap import client
 
 

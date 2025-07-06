@@ -1,13 +1,10 @@
-import pytest
-import pandas as pd
+from unittest.mock import MagicMock, patch
+
 import numpy as np
-from unittest.mock import patch, MagicMock
-from src.train import (
-    prepare_features,
-    train_model,
-    log_model_to_mlflow,
-    train_and_register,
-)
+import pandas as pd
+import pytest
+from src.train import (log_model_to_mlflow, prepare_features,
+                       train_and_register, train_model)
 from src.train_config import TrainConfig
 
 

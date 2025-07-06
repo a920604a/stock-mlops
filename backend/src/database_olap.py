@@ -1,8 +1,9 @@
 # src/database_olap.py
 
 import os
-from dotenv import load_dotenv
+
 from clickhouse_connect import get_client
+from dotenv import load_dotenv
 
 load_dotenv()
 

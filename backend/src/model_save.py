@@ -1,8 +1,9 @@
 # backend/src/model_save.py
 
-from src.models import ModelMetadata  # ORM 類別
-from src.database_oltp import SessionLocal  # 回傳 SQLAlchemy Session
 from datetime import datetime
+
+from src.database_oltp import SessionLocal  # 回傳 SQLAlchemy Session
+from src.models import ModelMetadata  # ORM 類別
 
 
 def save_model_metadata(

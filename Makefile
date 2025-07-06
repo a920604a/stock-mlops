@@ -47,3 +47,8 @@ train:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python src/train.py
 predict:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python src/predict.py
+
+quality_checks:
+	isort .
+	black .
+	pylint backend/src

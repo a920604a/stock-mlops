@@ -1,13 +1,13 @@
-import pytest
-import pandas as pd
-import numpy as np
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from src.predict import Predictor
-from src.model_save import ModelMetadata
-from sklearn.linear_model import LinearRegression
 import mlflow
+import numpy as np
+import pandas as pd
+import pytest
+from sklearn.linear_model import LinearRegression
+from src.model_save import ModelMetadata
+from src.predict import Predictor
 
 
 @pytest.fixture

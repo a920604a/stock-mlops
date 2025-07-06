@@ -1,5 +1,5 @@
-from typing import List, Literal, Optional
 from dataclasses import dataclass, field
+from typing import List, Literal, Optional
 
 FEATURE_COLUMNS = [
     "Open",

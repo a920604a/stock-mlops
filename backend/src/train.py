@@ -1,14 +1,15 @@
+from typing import List
+
 import mlflow
 import mlflow.sklearn
 import pandas as pd
 import xgboost as xgb
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
-from typing import List
-from src.train_config import TrainConfig
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
 from src.data_loader import load_stock_data
 from src.model_save import save_model_metadata
+from src.train_config import TrainConfig
 
 
 def prepare_features(df: pd.DataFrame, features: List[str]):

@@ -1,6 +1,7 @@
-from typing import Optional, List, Union
-from src.model_save import ModelMetadata
+from typing import List, Optional, Union
+
 from src.database_oltp import SessionLocal  # 回傳 SQLAlchemy Session
+from src.model_save import ModelMetadata
 
 
 def list_models(ticker: Optional[str] = None) -> List[ModelMetadata]:

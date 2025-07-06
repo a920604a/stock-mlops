@@ -1,11 +1,12 @@
-from prefect import flow, task
-import yfinance as yf
-import pandas as pd
-from sqlalchemy import create_engine
-import time
 import os
-from dotenv import load_dotenv
+import time
+
 import clickhouse_connect
+import pandas as pd
+import yfinance as yf
+from dotenv import load_dotenv
+from prefect import flow, task
+from sqlalchemy import create_engine
 
 load_dotenv()
 
