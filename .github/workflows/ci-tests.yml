@@ -24,27 +24,8 @@ jobs:
       - name: Run quality checks
         run: make quality_checks
 
-  unit-test:
+  test:
     needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Install dependencies
-        run: pip install -r backend/requirements.txt
-
-      - name: Run unit tests
-        run: PYTHONPATH=backend pytest -v backend/tests
-
-
-  integration-test:
-    needs: unit-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -125,6 +106,10 @@ jobs:
           wait_for_postgres "MLflow DB" mlflow-db
 
           echo "✅ 所有服務啟動完成"
+
+
+      - name: Run unit tests
+        run: make test
 
       - name: Run integration tests
         run: make integration_test

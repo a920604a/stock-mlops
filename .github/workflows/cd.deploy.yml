@@ -34,18 +34,8 @@ jobs:
           push: false
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stock-mlops-backend:latest
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run tests
-        run: make test
-
   publish:
-    needs: [build, test]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
