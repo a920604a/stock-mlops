@@ -40,7 +40,8 @@ jobs:
         run: pip install -r backend/requirements.txt
 
       - name: Run unit tests
-        run: make test
+        run: pytest -v 
+
 
   integration-test:
     needs: unit-test

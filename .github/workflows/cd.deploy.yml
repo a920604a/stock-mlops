@@ -30,9 +30,9 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./backend/Dockerfile.backend
+          file: ./Dockerfile.backend
           push: false
-          tags: my-dockerhub-username/stock-mlops-backend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/stock-mlops-backend:latest
 
   test:
     needs: build
