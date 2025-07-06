@@ -56,7 +56,7 @@ quality_checks:
 	pylint backend/src || true
 
 
-integration_test: 
+integration_test:
 	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash backend/integraton-test/run.sh
 
 publish: quality_checks build

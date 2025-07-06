@@ -56,3 +56,30 @@ stock-mlops-project/
 ├── README.md                         # 專案說明文件
 └── .gitignore
 ```
+
+
+
+1. Problem Clarification
+2. Data Collection
+3. Feature Engineering
+4. Model Design
+5. Model Evalution
+6. Deployment & Monitoring
+
+Model Design
+Evaluation metrics
+- Classificatopn: Precision, Recall, Area Under the ROC cure, F1 score
+- Regression: MSE, MAE, R-squared/Adjusted R-squared
+
+Molde training
+- Loss function: Cross Entropy , MSE, MAE, Huge loss
+- Regularzation: L1, L2, k-fold CV, dropout
+- Backpropagation: SGD, AdaGrad, Momentum
+- Vanishing gradient
+- Activation function: Linear, ReLU, Tanh, Sigmoid, ELU
+- Overfitting, Underfitting
+
+Deployment & Monitoring
+Monitoring
+- model bias, offline vs. online feature inconsistances etc
+- model score, model online metrics
