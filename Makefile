@@ -42,8 +42,8 @@ test:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) pytest -v
 
 
-build: init up ingest
-
+all: init up ingest
+build: init up
 
 train:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python src/train.py

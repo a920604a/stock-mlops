@@ -7,9 +7,8 @@ on:
     branches: [main, develop]
 
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,6 +17,37 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+
+      - name: Install QA tools
+        run: pip install isort black pylint
+
+      - name: Run quality checks
+        run: make quality_checks
+
+  unit-test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run unit tests
+        run: make test
+
+  integration-test:
+    needs: unit-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Compose
         run: docker compose version
@@ -82,8 +112,8 @@ jobs:
           wait_for_http_service "MLflow"      http://localhost:5010
           wait_for_http_service "ClickHouse"  http://localhost:8123/ping
           wait_for_http_service "MinIO"       http://localhost:9001
-          wait_for_http_service "Prometheus"  http://localhost:9090
           wait_for_http_service "Grafana"     http://localhost:3002
+          wait_for_http_service "Prometheus"  http://localhost:9090
 
           # Redis
           wait_for_redis
@@ -95,23 +125,9 @@ jobs:
 
           echo "✅ 所有服務啟動完成"
 
-
-
-
-      - name: Install QA tools (isort, black, pylint)
-        run: |
-          pip install isort black pylint
-
-
-      - name: Run quality checks
-        run: make quality_checks
-
-      - name: Run unit tests
-        run: make test
-
       - name: Run integration tests
         run: make integration_test
 
-      - name: Tear down
+      - name: Tear down services
         if: always()
         run: docker compose down --volumes
