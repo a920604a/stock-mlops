@@ -55,12 +55,12 @@ quality_checks:
 	black .
 	pylint backend/src
 
-publish: build integration_test
+
 integration_test: 
 	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash backend/integraton-test/run.sh
 
-# publish: integration_test
-# 	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash scripts/publish.sh
+publish: build
+	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash scripts/publish.sh
 
 # setup:
 # 	pipenv install --dev
