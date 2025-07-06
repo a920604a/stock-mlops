@@ -111,8 +111,12 @@ jobs:
       - name: Show Prometheus logs (debug)
         run: docker compose logs prometheus
 
-      - name: Run unit tests
+      - name: Run all (init, up, ingest)
+        run: make all
+
+      - name: Run tests in backend container
         run: make test
+
 
       - name: Run integration tests
         run: make integration_test
