@@ -3,9 +3,11 @@
 # DOCKER_COMPOSE = docker-compose
 DOCKER_COMPOSE = docker compose
 BACKEND_SERVICE = backend
+LOCAL_TAG:=$(shell date +"%Y-%m-%d-%H-%M")
+LOCAL_IMAGE_NAME:=stock-mlops-backend:${LOCAL_TAG}
 
 
-.PHONY: up down logs clean ingest test all init
+.PHONY: up down logs clean ingest test build init integration_test quality_checks
 
 clean:
 	$(DOCKER_COMPOSE) down --volumes
@@ -40,7 +42,7 @@ test:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) pytest -v
 
 
-all: init up ingest
+build: init up ingest
 
 
 train:
@@ -52,3 +54,14 @@ quality_checks:
 	isort .
 	black .
 	pylint backend/src
+
+publish: build integration_test
+integration_test: 
+	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash backend/integraton-test/run.sh
+
+# publish: integration_test
+# 	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash scripts/publish.sh
+
+# setup:
+# 	pipenv install --dev
+# 	pre-commit install

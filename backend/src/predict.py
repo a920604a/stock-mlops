@@ -4,8 +4,7 @@ from typing import Optional
 
 import mlflow
 import pandas as pd
-from src.data_loader import (get_close_price, get_last_available_date,
-                             load_stock_data)
+from src.data_loader import get_close_price, get_last_available_date, load_stock_data
 from src.database_olap import client  # 你已有的 ClickHouse client
 from src.database_oltp import SessionLocal
 from src.model_available import list_models

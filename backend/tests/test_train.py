@@ -3,8 +3,12 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 import pytest
-from src.train import (log_model_to_mlflow, prepare_features,
-                       train_and_register, train_model)
+from src.train import (
+    log_model_to_mlflow,
+    prepare_features,
+    train_and_register,
+    train_model,
+)
 from src.train_config import TrainConfig
 
 
