@@ -11,6 +11,11 @@ on:
       - 'scripts/**'
       - 'Dockerfile.*'
       - 'Makefile'
+    
+  push:
+    branches:
+      - main
+      - develop
 
 
 
