@@ -59,7 +59,7 @@ quality_checks:
 integration_test: 
 	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash backend/integraton-test/run.sh
 
-publish: build
+publish: quality_checks build
 	LOCAL_IMAGE_NAME=${LOCAL_IMAGE_NAME} bash scripts/publish.sh
 
 # setup:
