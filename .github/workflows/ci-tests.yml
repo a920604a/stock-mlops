@@ -37,12 +37,12 @@ jobs:
           wait_for_http_service() {
             local name="$1"
             local url="$2"
-            for i in {1..5}; do
+            for i in {1..30}; do
               if curl -s -L --fail "$url" > /dev/null; then
                 echo "✅ $name is up: $url"
                 return 0
               fi
-              echo "⏳ Waiting for $name... ($i/5)"
+              echo "⏳ Waiting for $name... ($i/30)"
               sleep 2
             done
             echo "❌ $name did not become ready: $url"
@@ -50,12 +50,12 @@ jobs:
           }
 
           wait_for_redis() {
-            for i in {1..5}; do
+            for i in {1..30}; do
               if docker compose exec redis redis-cli ping | grep -q PONG; then
                 echo "✅ Redis is up"
                 return 0
               fi
-              echo "⏳ Waiting for Redis... ($i/5)"
+              echo "⏳ Waiting for Redis... ($i/30)"
               sleep 2
             done
             echo "❌ Redis did not become ready"
@@ -65,12 +65,12 @@ jobs:
           wait_for_postgres() {
             local name="$1"
             local service="$2"
-            for i in {1..5}; do
+            for i in {1..30}; do
               if docker compose exec "$service" pg_isready -U user > /dev/null 2>&1; then
                 echo "✅ $name is up"
                 return 0
               fi
-              echo "⏳ Waiting for $name... ($i/5)"
+              echo "⏳ Waiting for $name... ($i/30)"
               sleep 2
             done
             echo "❌ $name did not become ready"
