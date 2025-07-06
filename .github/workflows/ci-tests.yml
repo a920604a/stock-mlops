@@ -37,12 +37,12 @@ jobs:
           wait_for_http_service() {
             local name="$1"
             local url="$2"
-            for i in {1..30}; do
-              if curl -s --fail "$url" > /dev/null; then
+            for i in {1..5}; do
+              if curl -s -L --fail "$url" > /dev/null; then
                 echo "✅ $name is up: $url"
                 return 0
               fi
-              echo "⏳ Waiting for $name... ($i/30)"
+              echo "⏳ Waiting for $name... ($i/5)"
               sleep 2
             done
             echo "❌ $name did not become ready: $url"
@@ -50,28 +50,51 @@ jobs:
           }
 
           wait_for_redis() {
-            for i in {1..30}; do
+            for i in {1..5}; do
               if docker compose exec redis redis-cli ping | grep -q PONG; then
                 echo "✅ Redis is up"
                 return 0
               fi
-              echo "⏳ Waiting for Redis... ($i/30)"
+              echo "⏳ Waiting for Redis... ($i/5)"
               sleep 2
             done
             echo "❌ Redis did not become ready"
             return 1
           }
 
-          # 檢查各服務
+          wait_for_postgres() {
+            local name="$1"
+            local service="$2"
+            for i in {1..5}; do
+              if docker compose exec "$service" pg_isready -U user > /dev/null 2>&1; then
+                echo "✅ $name is up"
+                return 0
+              fi
+              echo "⏳ Waiting for $name... ($i/5)"
+              sleep 2
+            done
+            echo "❌ $name did not become ready"
+            return 1
+          }
+
+          # HTTP 服務
           wait_for_http_service "Backend"     http://localhost:8000/docs
           wait_for_http_service "MLflow"      http://localhost:5010
           wait_for_http_service "ClickHouse"  http://localhost:8123/ping
           wait_for_http_service "MinIO"       http://localhost:9001
           wait_for_http_service "Prometheus"  http://localhost:9090
           wait_for_http_service "Grafana"     http://localhost:3002
+
+          # Redis
           wait_for_redis
 
+          # PostgreSQL
+          wait_for_postgres "Raw DB" raw_db
+          wait_for_postgres "Model Meta DB" model_meta_db
+          wait_for_postgres "MLflow DB" mlflow-db
+
           echo "✅ 所有服務啟動完成"
+
 
 
 
