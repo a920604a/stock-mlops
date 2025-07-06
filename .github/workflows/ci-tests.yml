@@ -95,7 +95,8 @@ jobs:
           wait_for_http_service "ClickHouse"  http://localhost:8123/ping
           wait_for_http_service "MinIO"       http://localhost:9001
           wait_for_http_service "Grafana"     http://localhost:3002
-          wait_for_http_service "Prometheus"  http://localhost:9090
+          wait_for_http_service "Prometheus" http://localhost:9090/-/ready
+
 
           # Redis
           wait_for_redis
