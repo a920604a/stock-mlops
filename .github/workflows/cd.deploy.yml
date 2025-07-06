@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./Dockerfile.backend
+          file: Dockerfile.backend
           push: false
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stock-mlops-backend:latest
 
@@ -61,6 +61,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./backend/Dockerfile.backend
+          file: Dockerfile.backend
           push: true
-          tags: my-
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/stock-mlops-backend:latest
