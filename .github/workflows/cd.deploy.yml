@@ -1,9 +1,11 @@
 name: CD Deploy
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
+
+  workflow_dispatch:  # ✅ 手動觸發
 
 jobs:
   build:
