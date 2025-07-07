@@ -90,7 +90,8 @@ jobs:
           }
 
           # HTTP 服務
-          wait_for_http_service "Backend"     http://localhost:8000/docs
+          wait_for_http_service "Backend1"     http://localhost:8001/docs
+          wait_for_http_service "Backend2"     http://localhost:8002/docs
           wait_for_http_service "MLflow"      http://localhost:5010
           wait_for_http_service "ClickHouse"  http://localhost:8123/ping
           wait_for_http_service "MinIO"       http://localhost:9001
