@@ -68,7 +68,9 @@ def download_stock_data(ticker: str, period: str = "1y") -> pd.DataFrame:
 def save_raw_data(
     df: pd.DataFrame, ticker: str, exchange: str, table_name: str = "raw_stock_prices"
 ):
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://user:password@localhost:5412/stocks"
+)
     engine = create_engine(DATABASE_URL)
 
     df = df.copy()
@@ -129,7 +131,9 @@ def save_parquet(df: pd.DataFrame, ticker: str):
 def save_processed_data(
     df: pd.DataFrame, ticker: str, exchange: str, table_name: str = "stock_prices"
 ):
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://user:password@localhost:5412/stocks"
+)
     engine = create_engine(DATABASE_URL)
 
     df = df.copy()
