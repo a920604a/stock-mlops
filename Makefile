@@ -2,7 +2,12 @@
 
 # DOCKER_COMPOSE = docker-compose
 DOCKER_COMPOSE = docker compose
-BACKEND_SERVICE = backend
+# BACKEND_SERVICE = backend
+
+TRAIN_BACKEND := backend1
+PREDICT_BACKEND := backend2
+
+
 LOCAL_TAG:=$(shell date +"%Y-%m-%d-%H-%M")
 LOCAL_IMAGE_NAME:=stock-mlops-backend:${LOCAL_TAG}
 
@@ -39,16 +44,16 @@ logs:
 
 
 test:
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) pytest -v
+	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) pytest -v
 
 
 all: init up ingest
 build: init up
 
 train:
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python src/train.py
+	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python src/train.py
 predict:
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python src/predict.py
+	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/predict.py
 
 quality_checks:
 	isort .
