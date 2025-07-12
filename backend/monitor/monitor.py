@@ -16,7 +16,6 @@ from evidently.metrics import (
     ValueDrift,
     MAE,
     RMSE,
-    R2Score,
     MinValue,
     MaxValue,
     MedianValue,
@@ -117,103 +116,85 @@ def calculate_and_log_metrics(
     exchange: str,
     start_date: datetime.datetime,
 ):
+    def to_numeric(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+        for col in columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+        return df
+
+    def get_data_definition() -> DataDefinition:
+        return DataDefinition(
+            text_columns=[],
+            numerical_columns=numerical_columns,
+            categorical_columns=["ticker", "exchange"],
+            regression=[Regression(target="Close", prediction="predicted_close")],
+        )
+
+    def generate_reference_dataset() -> Dataset:
+        df_ref = load_stock_data(ticker, exchange, ref_start, ref_end)
+        if df_ref.empty:
+            logging.warning(f"無足夠歷史資料作為參考，使用當日資料作為 reference")
+            return current_dataset  # fallback
+
+        df_ref["predicted_close"] = df_ref["Close"]
+        df_ref = df_ref.dropna(subset=["Close", "predicted_close"])
+        df_ref = to_numeric(df_ref, numerical_columns)
+        return Dataset.from_pandas(df_ref, data_definition)
+
+    # === 日期與欄位設定 ===
+
+    numerical_columns = [
+        "Open", "High", "Low", "Close", "Volume", "MA5", "MA10", "EMA12", "EMA26",
+        "MACD", "MACD_signal", "MACD_hist", "BB_upper", "BB_middle", "BB_lower",
+        "VOL_MA10", "predicted_close"
+    ]
+
     day_start = start_date + datetime.timedelta(days=day_index)
     day_end = day_start + datetime.timedelta(days=1)
+    
+    ref_start = day_start - datetime.timedelta(days=30)
+    ref_end = day_start
 
-    # df = load_stock_data(ticker, exchange, day_start, day_end)
+    # === 載入目前資料 ===
     df_current = load_stock_data(ticker, exchange, day_start, day_end)
     if df_current.empty:
         logging.warning(f"{day_start.date()} 無資料，跳過此日監控")
         return
 
-    # df_current["predicted_close"] = df_current["Date"].apply(
-    #     lambda d: predictor.predict_next_close(d)
-    # )
+    def safe_predict(d):
+        try:
+            pred , _ = predictor.predict_next_close(d)
+            return float(pred) if pred is not None else None
+        except Exception as e:
+            logging.warning(f"⚠️ 預測失敗：{d} -> {e}")
+            return None
 
-    # current_data：用來當作監控時的最新資料（New Data / Production Data）
-    df_current["predicted_close"] = df_current["Date"].apply(
-        lambda d: predictor.predict_next_close(d)
-    )
+    df_current["predicted_close"] = df_current["Date"].apply(safe_predict)
 
     df_current = df_current.dropna(subset=["Close", "predicted_close"])
+    df_current = to_numeric(df_current, numerical_columns)
 
-    data_definition = DataDefinition(
-        text_columns=[],
-        numerical_columns=[
-            "Open",
-            "High",
-            "Low",
-            "Close",
-            "Volume",
-            "MA5",
-            "MA10",
-            "EMA12",
-            "EMA26",
-            "MACD",
-            "MACD_signal",
-            "MACD_hist",
-            "BB_upper",
-            "BB_middle",
-            "BB_lower",
-            "VOL_MA10",
-            "predicted_close",
-        ],
-        categorical_columns=["ticker", "exchange"],
-        # 如果是分類問題可以加這個，回歸問題可刪除或改為 Regression 類型
-        # classification=[BinaryClassification(target="Close", prediction_labels="predicted_close", pos_label="Positive")],
-        # regression=[{"target": "Close", "prediction": "predicted_close"}],
-        regression=[Regression(target="Close", prediction="predicted_close")],
-    )
+    # === 建立 DataDefinition 與 Dataset ===
+    data_definition = get_data_definition()
+    current_dataset = Dataset.from_pandas(df_current, data_definition)
+    reference_dataset = generate_reference_dataset()
+    
 
-    current_dataset = Dataset.from_pandas(
-        df_current,
-        data_definition=data_definition,
-    )
-
-    # 取過去一段時間作為 reference_data，這邊示範用前30天（不包含當天）
-    ref_start = day_start - datetime.timedelta(days=30)
-    ref_end = day_start
-
-    # reference_data：用來當作訓練資料或基準資料（Baseline Data）
-    df_reference = load_stock_data(ticker, exchange, ref_start, ref_end)
-    # 對 reference dataset 也計算 predicted_close (依你 Predictor 的實作方式)
-    # df_reference["predicted_close"] = df_reference["Date"].apply(
-    #     lambda d: predictor.predict_next_close(d)
-    # )
-    df_reference["predicted_close"] = df_reference["Close"]
-
-    # 若有缺失，可以再 dropna 或補值
-    df_reference = df_reference.dropna(subset=["Close", "predicted_close"])
-
-    reference_dataset = Dataset.from_pandas(
-        df_reference,
-        data_definition=data_definition,
-    )
-    if df_reference.empty:
-        logging.warning(f"無足夠歷史資料作為參考，使用當日資料作為 reference")
-        df_reference = df_current.copy()
-
+    # === 生成報告與分析 ===
     report = create_evidently_report()
-    snapshot = report.run(
-        reference_data=reference_dataset, current_data=current_dataset
-    )
+    snapshot = report.run(reference_data=reference_dataset, current_data=current_dataset)
+    metrics = snapshot.dict()["metrics"]
 
-    result_dict = snapshot.dict()
-    metrics = result_dict["metrics"]
-
+    # === 抽取指標值 ===
     prediction_drift = extract_metric_value(metrics, "ValueDrift(column=Close)")
-    num_drifted_columns = extract_metric_value(
-        metrics, "DriftedColumnsCount", subkey="count"
-    )
-    share_missing_values = extract_metric_value(
-        metrics, "DatasetMissingValueCount", subkey="share"
-    )
+    num_drifted_columns = extract_metric_value(metrics, "DriftedColumnsCount", subkey="count")
+    share_missing_values = extract_metric_value(metrics, "DatasetMissingValueCount", subkey="share")
     mse = extract_metric_value(metrics, "MSE")
     rmse = extract_metric_value(metrics, "RMSE")
     mae = extract_metric_value(metrics, "MAE")
     close_median = extract_metric_value(metrics, "MedianValue(column=Close)")
 
-    # 整理寫入 ClickHouse 的欄位請依照你 DB schema 設計
+    # === 組裝資料寫入 ClickHouse ===
     record = {
         "timestamp": day_start,
         "ticker": ticker,
@@ -228,7 +209,6 @@ def calculate_and_log_metrics(
 
     insert_monitoring_result_to_clickhouse(record)
     print(f"{day_start.date()} 指標寫入 ClickHouse 完成")
-
 
 @flow
 def stock_monitoring_flow(
@@ -250,7 +230,6 @@ def stock_monitoring_flow(
 
         last_send = now
         print("本次指標送出完成")
-
 
 if __name__ == "__main__":
     start_monitor_date = datetime.datetime(2025, 5, 1)
