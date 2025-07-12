@@ -28,7 +28,7 @@ class Predictor:
             raise ValueError(f"🚫 找不到 ticker={ticker} 的任何訓練模型，請先訓練")
         self.model_meta = model_list[0]  # 預設用最新一筆
 
-        logger.info(
+        print(
             f"✅ 使用模型: ticker={self.model_meta.ticker}, features={self.model_meta.features}, model_type={self.model_meta.model_type}"
         )
         self.model = mlflow.sklearn.load_model(self.model_meta.model_uri)
@@ -48,7 +48,7 @@ class Predictor:
             logger.warning(f"🚨 找不到 ticker: {self.ticker} 的模型 metadata，請先訓練模型")
             raise ValueError(f"No trained model found for ticker '{self.ticker}'")
 
-        logger.info(
+        print(
             f"✅ 載入模型 metadata: ticker={meta.ticker}, model_uri={meta.model_uri}, train_end_time={meta.train_end_time}"
         )
         return meta
@@ -60,6 +60,7 @@ class Predictor:
         return df
 
     def predict_next_close(self, target_date) -> Optional[float]:
+        msg = ""
         # 👉 確保 target_date 是 datetime 物件
         if isinstance(target_date, str):
             target_date = datetime.strptime(target_date, "%Y-%m-%d %H:%M:%S")
@@ -72,17 +73,21 @@ class Predictor:
         fetch_end = fetch_date.replace(hour=23, minute=59, second=59, microsecond=0)
 
         print(f"✅ 取得交易資料區間：{fetch_start} ~ {fetch_end}")
+        msg += f"✅ 取得交易資料區間：{fetch_start} ~ {fetch_end}\n"
+
         df = load_stock_data(
             self.ticker, exchange="US", start_date=fetch_start, end_date=fetch_end
         )
 
         if df.empty:
-            logger.info("⚠️ 無可用資料進行預測")
+            print("⚠️ 無可用資料進行預測")
+            msg += "⚠️ 無可用資料進行預測\n"
             return None
 
         X = self._prepare_features(df)
         if X.empty:
-            logger.info(f"⚠️ 特徵工程後無有效資料，無法預測 {target_date.date()}")
+            print(f"⚠️ 特徵工程後無有效資料，無法預測 {target_date.date()}")
+            msg += f"⚠️ 特徵工程後無有效資料，無法預測 {target_date.date()}\n"
             return None
 
         # 取前一交易日的真實收盤價
@@ -102,24 +107,28 @@ class Predictor:
             change = "平"
             change_flag = 0
 
-        logger.info(f"📈 使用 {fetch_start}  {fetch_end} 的資料預測 {target_date.date()} 收盤價")
+        print(f"📈 使用 {fetch_start}  {fetch_end} 的資料預測 {target_date.date()} 收盤價")
+        msg += f"📈 使用 {fetch_start}  {fetch_end} 的資料預測 {target_date.date()} 收盤價\n"
         actual_df = get_close_price(target_date, self.ticker, self.exchange)
 
-        if not actual_df.empty:
+        if actual_df is None:
+            print(f"🎯 預測 {self.ticker} {target_date.date()} 尚未開盤")
+            msg += f"🎯 預測 {self.ticker} {target_date.date()} 尚未開盤\n"
+        elif not actual_df.empty:
             actual_close = actual_df.iloc[0]["Close"]
-            logger.info(
+            print(
                 f"🔍 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}，實際收盤價為：{actual_close:.2f}"
             )
+            msg += f"🔍 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}，實際收盤價為：{actual_close:.2f}\n"
         else:
-            logger.info(
-                f"🎯 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}"
+            print(f"🎯 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}")
+            msg += (
+                f"🎯 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}\n"
             )
-
-        # logger.info(f"🎯 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}")
 
         self.log_prediction(predicted_price, target_date)
 
-        return predicted_price
+        return predicted_price, msg
 
     def log_prediction(self, predicted_price: float, target_date: datetime):
         data = {
@@ -132,7 +141,7 @@ class Predictor:
         df = pd.DataFrame(data)
 
         client.insert_df("stock_predictions", df)
-        logger.info(
+        print(
             f"✅ 已記錄預測：{self.ticker} {target_date.date()} 的收盤價 = {predicted_price:.2f}"
         )
 

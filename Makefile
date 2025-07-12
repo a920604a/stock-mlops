@@ -12,7 +12,7 @@ LOCAL_TAG:=$(shell date +"%Y-%m-%d-%H-%M")
 LOCAL_IMAGE_NAME:=stock-mlops-backend:${LOCAL_TAG}
 
 
-.PHONY: up down logs clean ingest test build init integration_test quality_checks
+.PHONY: up down logs clean ingest test build init integration_test quality_checks monitor
 
 clean:
 	$(DOCKER_COMPOSE) down --volumes
@@ -52,6 +52,10 @@ build: init up
 
 train:
 	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python src/train.py
+
+monitor:
+	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python -m monitor.monitor
+
 predict:
 	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/predict.py
 

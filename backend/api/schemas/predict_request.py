@@ -16,3 +16,4 @@ class PredictResponse(BaseModel):
     predicted_close: float
     actual_close: Optional[float] = None
     predicted_at: datetime
+    msg: str
