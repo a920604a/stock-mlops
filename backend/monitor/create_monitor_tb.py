@@ -20,8 +20,8 @@ def create_clickhouse_table():
         `num_drifted_columns` UInt32,
         `share_missing_values` Float32,
         `mse` Float32,
+        `rmse` Float32,
         `mae` Float32,
-        `r2` Float32,
         `close_median` Float32
     )
     ENGINE = MergeTree

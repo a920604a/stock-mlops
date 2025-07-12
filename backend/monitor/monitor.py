@@ -29,6 +29,7 @@ from evidently.metrics import (
     ScoreDistribution,
 )
 
+
 from src.data_loader import load_stock_data
 from src.predict import Predictor
 from src.create_clickhouse_table import create_clickhouse_table as create_predict_tb
@@ -46,6 +47,29 @@ if not logger.hasHandlers():  # 避免重複加 handler
 
 SEND_TIMEOUT = 10  # 每 10 秒執行一次
 
+import math
+
+
+def safe_float(val):
+    try:
+        f = float(val)
+        return f if not math.isnan(f) else 0.0
+    except:
+        return 0.0
+
+
+def extract_metric_value(metrics, metric_key_prefix: str, subkey: str = None):
+    for m in metrics:
+        if metric_key_prefix in m.get("metric_id", ""):
+            value = m.get("value", None)
+            if isinstance(value, dict):
+                if subkey and subkey in value:
+                    return safe_float(value[subkey])
+                if "mean" in value:
+                    return safe_float(value["mean"])
+            return safe_float(value)
+    return 0.0
+
 
 def create_evidently_report():
     return Report(
@@ -61,7 +85,6 @@ def create_evidently_report():
             # 模型表現（回歸誤差）
             MAE(),
             RMSE(),
-            R2Score(),
             # 重要統計數值
             MinValue(column="Close"),
             MaxValue(column="Close"),
@@ -103,9 +126,15 @@ def calculate_and_log_metrics(
         logging.warning(f"{day_start.date()} 無資料，跳過此日監控")
         return
 
+    # df_current["predicted_close"] = df_current["Date"].apply(
+    #     lambda d: predictor.predict_next_close(d)
+    # )
+
+    # current_data：用來當作監控時的最新資料（New Data / Production Data）
     df_current["predicted_close"] = df_current["Date"].apply(
         lambda d: predictor.predict_next_close(d)
     )
+
     df_current = df_current.dropna(subset=["Close", "predicted_close"])
 
     data_definition = DataDefinition(
@@ -145,11 +174,13 @@ def calculate_and_log_metrics(
     ref_start = day_start - datetime.timedelta(days=30)
     ref_end = day_start
 
+    # reference_data：用來當作訓練資料或基準資料（Baseline Data）
     df_reference = load_stock_data(ticker, exchange, ref_start, ref_end)
     # 對 reference dataset 也計算 predicted_close (依你 Predictor 的實作方式)
-    df_reference["predicted_close"] = df_reference["Date"].apply(
-        lambda d: predictor.predict_next_close(d)
-    )
+    # df_reference["predicted_close"] = df_reference["Date"].apply(
+    #     lambda d: predictor.predict_next_close(d)
+    # )
+    df_reference["predicted_close"] = df_reference["Close"]
 
     # 若有缺失，可以再 dropna 或補值
     df_reference = df_reference.dropna(subset=["Close", "predicted_close"])
@@ -168,37 +199,33 @@ def calculate_and_log_metrics(
     )
 
     result_dict = snapshot.dict()
-    # print(f"result {result_dict}")
+    metrics = result_dict["metrics"]
 
-    def extract_metric(metrics, prefix: str):
-        return next(
-            (
-                m["value"]["mean"]
-                if isinstance(m["value"], dict) and "mean" in m["value"]
-                else m["value"]
-                for m in metrics
-                if m.get("metric_id", "").startswith(prefix)
-            ),
-            None,
-        )
-
-    prediction_mae = extract_metric(result_dict["metrics"], "MAE")
-    prediction_rmse = extract_metric(result_dict["metrics"], "RMSE")
-    r2_score = extract_metric(result_dict["metrics"], "R2Score")
-
-    print(
-        f"{day_start.date()} 指標: MAE={prediction_mae:.4f}, RMSE={prediction_rmse:.4f}, R2={r2_score:.4f}"
+    prediction_drift = extract_metric_value(metrics, "ValueDrift(column=Close)")
+    num_drifted_columns = extract_metric_value(
+        metrics, "DriftedColumnsCount", subkey="count"
     )
+    share_missing_values = extract_metric_value(
+        metrics, "DatasetMissingValueCount", subkey="share"
+    )
+    mse = extract_metric_value(metrics, "MSE")
+    rmse = extract_metric_value(metrics, "RMSE")
+    mae = extract_metric_value(metrics, "MAE")
+    close_median = extract_metric_value(metrics, "MedianValue(column=Close)")
 
-    # # 整理寫入 ClickHouse 的欄位請依照你 DB schema 設計
+    # 整理寫入 ClickHouse 的欄位請依照你 DB schema 設計
     record = {
         "timestamp": day_start,
         "ticker": ticker,
-        "mae": prediction_mae,
-        "rmse": prediction_rmse,
-        "r2": r2_score,
-        # 其他你想紀錄的指標也可以放進 record
+        "prediction_drift": prediction_drift,
+        "num_drifted_columns": int(num_drifted_columns),
+        "share_missing_values": share_missing_values,
+        "mse": mse,
+        "rmse": rmse,
+        "mae": mae,
+        "close_median": close_median,
     }
+
     insert_monitoring_result_to_clickhouse(record)
     print(f"{day_start.date()} 指標寫入 ClickHouse 完成")
 
@@ -223,9 +250,8 @@ def stock_monitoring_flow(
 
         last_send = now
         print("本次指標送出完成")
-        break
 
 
 if __name__ == "__main__":
     start_monitor_date = datetime.datetime(2025, 5, 1)
-    stock_monitoring_flow("AAPL", "US", start_monitor_date, days=30)
+    stock_monitoring_flow("AAPL", "US", start_monitor_date, days=10)

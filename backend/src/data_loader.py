@@ -26,7 +26,7 @@ def load_stock_data(
         base_query += f" AND Date <= '{end_date}'"
 
     base_query += " ORDER BY Date"
-    print(f"base_query {base_query}")
+    # print(f"base_query {base_query}")
 
     df = client.query_df(base_query)
     return df
@@ -44,7 +44,7 @@ def get_last_available_date(
         ORDER BY Date DESC
         LIMIT 1
     """
-    print(f"base_query {base_query}")
+    # print(f"base_query {base_query}")
 
     df = client.query_df(base_query)
 
@@ -70,7 +70,8 @@ def get_close_price(
         LIMIT 1
     """
     df = client.query_df(query)
-    print(f"base_query {query}")
+    # print(f"base_query {query}")
+
     if df.empty:
         return None
     return df
