@@ -130,6 +130,7 @@ class Predictor:
             "model_metadata_id": [self.model_meta.id],
         }
         df = pd.DataFrame(data)
+
         client.insert_df("stock_predictions", df)
         logger.info(
             f"✅ 已記錄預測：{self.ticker} {target_date.date()} 的收盤價 = {predicted_price:.2f}"
