@@ -71,6 +71,7 @@ def log_model_to_mlflow(model, ticker, config: TrainConfig):
         )
 
         print("✅ Model registered to MLflow")
+    return run.info.run_id
 
 
 def train_and_register(ticker: str, exchange: str, config: TrainConfig):
@@ -81,11 +82,11 @@ def train_and_register(ticker: str, exchange: str, config: TrainConfig):
     train_start_time = df["Date"].iloc[0]
     train_end_time = df["Date"].iloc[-1]
     model, rmse = train_model(X, y, config)
-    log_model_to_mlflow(model, ticker, config)
+    run_id = log_model_to_mlflow(model, ticker, config)
 
     print(f"訓練完成，RMSE：{rmse:.4f}")
     print(f"訓練資料區間：{train_start_time} ~ {train_end_time}")
-    return rmse
+    return rmse, run_id
 
 
 if __name__ == "__main__":

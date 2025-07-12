@@ -86,6 +86,20 @@ services:
     ports:
       - "6379:6379"
 
+  celery:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: celery
+    command: celery -A celery_worker.celery_app worker --loglevel=info
+    depends_on:
+      - redis
+      - backend1
+      - backend2
+    volumes:
+      - ./backend:/app
+
+
   mlflow:
     build:
       context: .

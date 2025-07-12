@@ -16,3 +16,4 @@ xgboost
 clickhouse-connect
 boto3
 evidently==0.7.10
+celery
