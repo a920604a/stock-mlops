@@ -131,7 +131,12 @@ services:
     ports:
       - "3002:3000"
     volumes:
-      - ./monitor/dashboards:/opt/grafana/dashboards
+      - ./monitor/dashboards:/var/lib/grafana/dashboards   # dashboard JSON
+      - ./monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_SECURITY_ADMIN_PASSWORD=admin12345  # 可設定 Grafana admin 密碼
+      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource
     restart: always
 
   clickhouse:
