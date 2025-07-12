@@ -5,6 +5,8 @@ import pandas as pd
 from prefect import task, flow
 from evidently import Report
 from evidently import Dataset
+from evidently import DataDefinition
+from evidently import Regression
 
 # 從 evidently.metrics 匯入適合指標
 from evidently.metrics import (
@@ -34,9 +36,13 @@ from src.create_clickhouse_table import create_clickhouse_table as create_predic
 from monitor.create_monitor_tb import create_clickhouse_table as create_monitor_tb
 from monitor.save_result import insert_monitoring_result_to_clickhouse
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s]: %(message)s"
-)
+logger = logging.getLogger("monitor")
+logger.setLevel(logging.INFO)
+if not logger.hasHandlers():  # 避免重複加 handler
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s]: %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 SEND_TIMEOUT = 10  # 每 10 秒執行一次
 
@@ -102,29 +108,37 @@ def calculate_and_log_metrics(
     )
     df_current = df_current.dropna(subset=["Close", "predicted_close"])
 
-    current_dataset = Dataset(
-        data=df_current,
-        cat_columns=["ticker", "exchange"],
-        num_columns=[
-            "open",
-            "high",
-            "low",
-            "close",
-            "volume",
-            "ma5",
-            "ma10",
-            "ema12",
-            "ema26",
-            "macd",
-            "macd_signal",
-            "macd_hist",
-            "bb_upper",
-            "bb_middle",
-            "bb_lower",
-            "vol_ma10",
+    data_definition = DataDefinition(
+        text_columns=[],
+        numerical_columns=[
+            "Open",
+            "High",
+            "Low",
+            "Close",
+            "Volume",
+            "MA5",
+            "MA10",
+            "EMA12",
+            "EMA26",
+            "MACD",
+            "MACD_signal",
+            "MACD_hist",
+            "BB_upper",
+            "BB_middle",
+            "BB_lower",
+            "VOL_MA10",
+            "predicted_close",
         ],
-        target="close",
-        prediction="predicted_close",
+        categorical_columns=["ticker", "exchange"],
+        # 如果是分類問題可以加這個，回歸問題可刪除或改為 Regression 類型
+        # classification=[BinaryClassification(target="Close", prediction_labels="predicted_close", pos_label="Positive")],
+        # regression=[{"target": "Close", "prediction": "predicted_close"}],
+        regression=[Regression(target="Close", prediction="predicted_close")],
+    )
+
+    current_dataset = Dataset.from_pandas(
+        df_current,
+        data_definition=data_definition,
     )
 
     # 取過去一段時間作為 reference_data，這邊示範用前30天（不包含當天）
@@ -132,75 +146,51 @@ def calculate_and_log_metrics(
     ref_end = day_start
 
     df_reference = load_stock_data(ticker, exchange, ref_start, ref_end)
-    reference_dataset = Dataset(
-        data=df_reference,
-        cat_columns=["ticker", "exchange"],
-        num_columns=[
-            "open",
-            "high",
-            "low",
-            "close",
-            "volume",
-            "ma5",
-            "ma10",
-            "ema12",
-            "ema26",
-            "macd",
-            "macd_signal",
-            "macd_hist",
-            "bb_upper",
-            "bb_middle",
-            "bb_lower",
-            "vol_ma10",
-        ],
-        target="close",
-        prediction="predicted_close",
+    # 對 reference dataset 也計算 predicted_close (依你 Predictor 的實作方式)
+    df_reference["predicted_close"] = df_reference["Date"].apply(
+        lambda d: predictor.predict_next_close(d)
     )
 
+    # 若有缺失，可以再 dropna 或補值
+    df_reference = df_reference.dropna(subset=["Close", "predicted_close"])
+
+    reference_dataset = Dataset.from_pandas(
+        df_reference,
+        data_definition=data_definition,
+    )
     if df_reference.empty:
         logging.warning(f"無足夠歷史資料作為參考，使用當日資料作為 reference")
         df_reference = df_current.copy()
 
     report = create_evidently_report()
-    report.run(
-        reference_data=reference_dataset,
-        current_data=current_dataset,
-        # column_mapping=column_mapping,
+    snapshot = report.run(
+        reference_data=reference_dataset, current_data=current_dataset
     )
 
-    result = report.as_dict()
+    result_dict = snapshot.dict()
+    # print(f"result {result_dict}")
 
-    # 依指標名稱逐一取得數值，以下為範例
-    prediction_mae = next(
-        (
-            m["result"]["current"]["value"]
-            for m in result["metrics"]
-            if m["metric"] == "MAE"
-        ),
-        None,
-    )
-    prediction_rmse = next(
-        (
-            m["result"]["current"]["value"]
-            for m in result["metrics"]
-            if m["metric"] == "RMSE"
-        ),
-        None,
-    )
-    r2_score = next(
-        (
-            m["result"]["current"]["value"]
-            for m in result["metrics"]
-            if m["metric"] == "R2Score"
-        ),
-        None,
-    )
+    def extract_metric(metrics, prefix: str):
+        return next(
+            (
+                m["value"]["mean"]
+                if isinstance(m["value"], dict) and "mean" in m["value"]
+                else m["value"]
+                for m in metrics
+                if m.get("metric_id", "").startswith(prefix)
+            ),
+            None,
+        )
 
-    logging.info(
+    prediction_mae = extract_metric(result_dict["metrics"], "MAE")
+    prediction_rmse = extract_metric(result_dict["metrics"], "RMSE")
+    r2_score = extract_metric(result_dict["metrics"], "R2Score")
+
+    print(
         f"{day_start.date()} 指標: MAE={prediction_mae:.4f}, RMSE={prediction_rmse:.4f}, R2={r2_score:.4f}"
     )
 
-    # 整理寫入 ClickHouse 的欄位請依照你 DB schema 設計
+    # # 整理寫入 ClickHouse 的欄位請依照你 DB schema 設計
     record = {
         "timestamp": day_start,
         "ticker": ticker,
@@ -210,7 +200,7 @@ def calculate_and_log_metrics(
         # 其他你想紀錄的指標也可以放進 record
     }
     insert_monitoring_result_to_clickhouse(record)
-    logging.info(f"{day_start.date()} 指標寫入 ClickHouse 完成")
+    print(f"{day_start.date()} 指標寫入 ClickHouse 完成")
 
 
 @flow
@@ -232,7 +222,8 @@ def stock_monitoring_flow(
             time.sleep(SEND_TIMEOUT - elapsed)
 
         last_send = now
-        logging.info("本次指標送出完成")
+        print("本次指標送出完成")
+        break
 
 
 if __name__ == "__main__":
