@@ -6,6 +6,7 @@ from tasks.train_model_task import train_model_task
 from fastapi import HTTPException
 from celery.result import AsyncResult
 from celery_worker import celery_app
+from dataclasses import asdict
 
 
 router = APIRouter()
@@ -14,7 +15,10 @@ logger = logging.getLogger(__name__)
 
 @router.post("/train")
 def submit_train_job(req: TrainRequest):
-    task = train_model_task.delay(req.ticker, req.exchange, req.config)
+    print(f"config {req.config}")
+    config_dict = asdict(req.config)  # 把 dataclass 物件轉 dict
+    task = train_model_task.delay(req.ticker, req.exchange, config_dict)
+    print(f"Submitted train task with ID: {task.id}")
     return {"task_id": task.id}
 
 
