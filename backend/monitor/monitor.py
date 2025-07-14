@@ -144,14 +144,28 @@ def calculate_and_log_metrics(
     # === 日期與欄位設定 ===
 
     numerical_columns = [
-        "Open", "High", "Low", "Close", "Volume", "MA5", "MA10", "EMA12", "EMA26",
-        "MACD", "MACD_signal", "MACD_hist", "BB_upper", "BB_middle", "BB_lower",
-        "VOL_MA10", "predicted_close"
+        "Open",
+        "High",
+        "Low",
+        "Close",
+        "Volume",
+        "MA5",
+        "MA10",
+        "EMA12",
+        "EMA26",
+        "MACD",
+        "MACD_signal",
+        "MACD_hist",
+        "BB_upper",
+        "BB_middle",
+        "BB_lower",
+        "VOL_MA10",
+        "predicted_close",
     ]
 
     day_start = start_date + datetime.timedelta(days=day_index)
     day_end = day_start + datetime.timedelta(days=1)
-    
+
     ref_start = day_start - datetime.timedelta(days=30)
     ref_end = day_start
 
@@ -163,7 +177,7 @@ def calculate_and_log_metrics(
 
     def safe_predict(d):
         try:
-            pred , _ = predictor.predict_next_close(d)
+            pred, actual_close, msg = predictor.predict_next_close(d)
             return float(pred) if pred is not None else None
         except Exception as e:
             logging.warning(f"⚠️ 預測失敗：{d} -> {e}")
@@ -178,17 +192,22 @@ def calculate_and_log_metrics(
     data_definition = get_data_definition()
     current_dataset = Dataset.from_pandas(df_current, data_definition)
     reference_dataset = generate_reference_dataset()
-    
 
     # === 生成報告與分析 ===
     report = create_evidently_report()
-    snapshot = report.run(reference_data=reference_dataset, current_data=current_dataset)
+    snapshot = report.run(
+        reference_data=reference_dataset, current_data=current_dataset
+    )
     metrics = snapshot.dict()["metrics"]
 
     # === 抽取指標值 ===
     prediction_drift = extract_metric_value(metrics, "ValueDrift(column=Close)")
-    num_drifted_columns = extract_metric_value(metrics, "DriftedColumnsCount", subkey="count")
-    share_missing_values = extract_metric_value(metrics, "DatasetMissingValueCount", subkey="share")
+    num_drifted_columns = extract_metric_value(
+        metrics, "DriftedColumnsCount", subkey="count"
+    )
+    share_missing_values = extract_metric_value(
+        metrics, "DatasetMissingValueCount", subkey="share"
+    )
     mse = extract_metric_value(metrics, "MSE")
     rmse = extract_metric_value(metrics, "RMSE")
     mae = extract_metric_value(metrics, "MAE")
@@ -210,6 +229,7 @@ def calculate_and_log_metrics(
     insert_monitoring_result_to_clickhouse(record)
     print(f"{day_start.date()} 指標寫入 ClickHouse 完成")
 
+
 @flow
 def stock_monitoring_flow(
     ticker: str, exchange: str, start_date: datetime.datetime, days: int = 30
@@ -230,6 +250,7 @@ def stock_monitoring_flow(
 
         last_send = now
         print("本次指標送出完成")
+
 
 if __name__ == "__main__":
     start_monitor_date = datetime.datetime(2025, 5, 1)

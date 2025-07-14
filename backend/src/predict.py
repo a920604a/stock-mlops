@@ -110,6 +110,7 @@ class Predictor:
         print(f"📈 使用 {fetch_start}  {fetch_end} 的資料預測 {target_date.date()} 收盤價")
         msg += f"📈 使用 {fetch_start}  {fetch_end} 的資料預測 {target_date.date()} 收盤價\n"
         actual_df = get_close_price(target_date, self.ticker, self.exchange)
+        actual_close = 0
 
         if actual_df is None:
             print(f"🎯 預測 {self.ticker} {target_date.date()} 尚未開盤")
@@ -128,7 +129,7 @@ class Predictor:
 
         self.log_prediction(predicted_price, target_date)
 
-        return predicted_price, msg
+        return predicted_price, actual_close, msg
 
     def log_prediction(self, predicted_price: float, target_date: datetime):
         data = {
@@ -153,4 +154,4 @@ if __name__ == "__main__":
     create_clickhouse_table()
 
     predictor = Predictor("AAPL", "US")
-    pred_price = predictor.predict_next_close("2025-07-03 00:00:00")
+    pred_price, actual_close, msg = predictor.predict_next_close("2025-07-03 00:00:00")

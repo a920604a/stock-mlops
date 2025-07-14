@@ -81,7 +81,7 @@ def test_predict_next_close(
 
     # Act
     predictor = Predictor("AAPL", "US")
-    result = predictor.predict_next_close("2025-07-03 00:00:00")
+    result, actual_close, msg = predictor.predict_next_close("2025-07-03 00:00:00")
 
     # Assert
     assert isinstance(result, float)

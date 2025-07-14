@@ -16,14 +16,16 @@ def predict(request: PredictRequest):
         print(f"target_date_clean {target_date_clean} {type(target_date_clean)}")
 
         predictor = Predictor(request.ticker, request.exchange)
-        predicted_price, msg = predictor.predict_next_close(target_date_clean)
+        predicted_price, actual_close, msg = predictor.predict_next_close(
+            target_date_clean
+        )
 
         return PredictResponse(
             ticker=request.ticker,
             exchange=request.exchange,
             target_date=request.target_date,
             predicted_close=predicted_price,
-            actual_close=None,  # 預設空值
+            actual_close=actual_close,
             predicted_at=datetime.utcnow(),
             msg=msg,
         )
