@@ -10,9 +10,7 @@ router = APIRouter()
 def predict(request: PredictRequest):
     try:
         # 強制把 target_date 轉為 "日期 + 00:00:00" 格式
-        target_date_clean = datetime.combine(
-            request.target_date.date(), datetime.min.time()
-        )
+        target_date_clean = datetime.combine(request.target_date, datetime.min.time())
         print(f"target_date_clean {target_date_clean} {type(target_date_clean)}")
 
         predictor = Predictor(request.ticker, request.exchange)
@@ -20,6 +18,7 @@ def predict(request: PredictRequest):
             target_date_clean
         )
 
+        print(f"predicted_price {predicted_price} vs actual price {actual_close}")
         return PredictResponse(
             ticker=request.ticker,
             exchange=request.exchange,
