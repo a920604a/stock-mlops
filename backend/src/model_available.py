@@ -32,7 +32,7 @@ def list_models(ticker: Optional[str] = None) -> List[ModelMetadata]:
             f"- ticker={meta.ticker:<6} "
             f"model={meta.model_type:<10} "
             f"features=[{features_str}] "
-            f"trained_at={meta.train_start_time.date()} ~ {meta.train_end_time.date()}"
+            f"trained_at={meta.train_start_date.date()} ~ {meta.train_end_date.date()}"
         )
 
     return results

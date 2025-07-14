@@ -15,5 +15,5 @@ class ModelMetadata(Base):
     features = Column(ARRAY(String), nullable=False)
     model_type = Column(String, nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)
-    train_start_time = Column(TIMESTAMP, nullable=True)
-    train_end_time = Column(TIMESTAMP, nullable=True)
+    train_start_date = Column(TIMESTAMP, nullable=True)
+    train_end_date = Column(TIMESTAMP, nullable=True)

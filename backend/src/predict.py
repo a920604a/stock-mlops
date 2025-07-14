@@ -49,7 +49,7 @@ class Predictor:
             raise ValueError(f"No trained model found for ticker '{self.ticker}'")
 
         print(
-            f"✅ 載入模型 metadata: ticker={meta.ticker}, model_uri={meta.model_uri}, train_end_time={meta.train_end_time}"
+            f"✅ 載入模型 metadata: ticker={meta.ticker}, model_uri={meta.model_uri}, train_end_date={meta.train_end_date}"
         )
         return meta
 

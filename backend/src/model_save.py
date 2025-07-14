@@ -12,8 +12,8 @@ def save_model_metadata(
     model_uri: str,
     features: list[str],
     model_type: str,
-    train_start_time: datetime,
-    train_end_time: datetime,
+    train_start_date: datetime,
+    train_end_date: datetime,
     shuffle: bool,
 ):
     """儲存模型 metadata 到 PostgreSQL"""
@@ -25,8 +25,8 @@ def save_model_metadata(
             model_uri=model_uri,
             features=features,
             model_type=model_type,
-            train_start_time=train_start_time,
-            train_end_time=train_end_time,
+            train_start_date=train_start_date,
+            train_end_date=train_end_date,
             shuffle=shuffle,
         )
         session.add(metadata)

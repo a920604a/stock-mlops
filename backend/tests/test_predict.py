@@ -31,8 +31,8 @@ def sample_model_meta(sample_model_uri):
         features=["MA5", "MA10"],
         model_type="xgboost",
         model_uri=str(sample_model_uri),  # 這裡是 fixture 回傳值，轉成字串
-        train_start_time=datetime(2025, 1, 1),
-        train_end_time=datetime(2025, 6, 30),
+        train_start_date=datetime(2025, 1, 1),
+        train_end_date=datetime(2025, 6, 30),
     )
 
 

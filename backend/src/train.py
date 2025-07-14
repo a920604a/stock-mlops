@@ -66,8 +66,8 @@ def log_model_to_mlflow(model, ticker, config: TrainConfig):
             model_uri=model_uri,
             features=config.feature_columns,
             model_type=config.model_type,
-            train_start_time=config.train_start_time,
-            train_end_time=config.train_end_time,
+            train_start_date=config.train_start_date,
+            train_end_date=config.train_end_date,
             shuffle=config.shuffle,
         )
 
@@ -77,16 +77,16 @@ def log_model_to_mlflow(model, ticker, config: TrainConfig):
 
 def train_and_register(ticker: str, exchange: str, config: TrainConfig):
     df = load_stock_data(
-        ticker, exchange, config.train_start_time, config.train_end_time
+        ticker, exchange, config.train_start_date, config.train_end_date
     )
     X, y = prepare_features(df, config.feature_columns)
-    train_start_time = df["Date"].iloc[0]
-    train_end_time = df["Date"].iloc[-1]
+    train_start_date = df["Date"].iloc[0]
+    train_end_date = df["Date"].iloc[-1]
     model, rmse = train_model(X, y, config)
     run_id = log_model_to_mlflow(model, ticker, config)
 
     print(f"訓練完成，RMSE：{rmse:.4f}")
-    print(f"訓練資料區間：{train_start_time} ~ {train_end_time}")
+    print(f"訓練資料區間：{train_start_date} ~ {train_end_date}")
     return rmse, run_id
 
 

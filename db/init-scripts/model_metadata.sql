@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS model_metadata (
     model_type VARCHAR,
     shuffle BOOLEAN,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-    train_start_time TIMESTAMP WITHOUT TIME ZONE,
-    train_end_time TIMESTAMP WITHOUT TIME ZONE
+    train_start_date TIMESTAMP WITHOUT TIME ZONE,
+    train_end_date TIMESTAMP WITHOUT TIME ZONE
 );
