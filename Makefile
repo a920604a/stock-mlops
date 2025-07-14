@@ -12,7 +12,7 @@ LOCAL_TAG:=$(shell date +"%Y-%m-%d-%H-%M")
 LOCAL_IMAGE_NAME:=stock-mlops-backend:${LOCAL_TAG}
 
 
-.PHONY: up down logs clean ingest test build init integration_test quality_checks monitor reset
+.PHONY: up down logs clean ingest test build init integration_test quality_checks monitor reset frontend
 
 
 reset:
@@ -27,6 +27,8 @@ clean:
 	sudo rm -rf db/mlflow_db db/oltp db/model_meta_db db/olap
 	sudo rm -rf data/mlflow_artifacts data/prometheus_data
 	sudo rm -rf data/minio
+	rm -rf frontend/package-lock.json frontend/node_modules
+
 
 init:
 	mkdir -p db/mlflow_db db/oltp db/model_meta_db db/olap
@@ -36,6 +38,11 @@ init:
 up:
 	$(DOCKER_COMPOSE) up --build -d
 	@echo "✅ 所有服務已啟動"
+
+frontend:
+	cd frontend
+	npm i
+	npm run dev
 # clickhouse create table (so far, use script)
 # 進入 MinIO web 控制台（http://localhost:9001）登入後： 建立一個 bucket 名為：mlflow-artifacts
 
