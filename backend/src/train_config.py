@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional
+from typing import List, Literal
+from datetime import date
 
 FEATURE_COLUMNS = [
     "Open",
@@ -27,5 +28,5 @@ class TrainConfig:
     feature_columns: List[str] = field(default_factory=lambda: FEATURE_COLUMNS)
     shuffle: bool = False
     n_estimators: int = 100
-    train_start_time: Optional[str] = None
-    train_end_time: Optional[str] = None
+    train_start_date: date = None
+    train_end_date: date = None

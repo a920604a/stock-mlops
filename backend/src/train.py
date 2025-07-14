@@ -4,6 +4,7 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 import xgboost as xgb
+from datetime import datetime
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -103,8 +104,12 @@ if __name__ == "__main__":
             "MACD_signal",
             "MACD_hist",
         ],
-        train_start_time="2025-01-01 00:00:00",
-        train_end_time="2025-06-30 00:00:00",
+        train_start_date=datetime.strptime(
+            "2025-01-01 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
+        train_end_date=datetime.strptime(
+            "2025-06-30 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
     )
 
     train_and_register("AAPL", "US", config)

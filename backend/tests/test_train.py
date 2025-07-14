@@ -1,4 +1,6 @@
 from unittest.mock import MagicMock, patch
+from datetime import datetime
+
 
 import numpy as np
 import pandas as pd
@@ -68,8 +70,12 @@ def test_train_model(sample_df):
         shuffle=False,
         n_estimators=10,
         feature_columns=features,
-        train_start_time="2025-01-01 00:00:00",
-        train_end_time="2025-01-10 00:00:00",
+        train_start_date=datetime.strptime(
+            "2025-01-01 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
+        train_end_date=datetime.strptime(
+            "2025-01-10 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
     )
     model, rmse = train_model(X, y, config)
     # 確認模型是 RandomForestRegressor
@@ -97,8 +103,12 @@ def test_log_model_to_mlflow(mock_save_meta, mock_mlflow, sample_df):
             "MACD_signal",
             "MACD_hist",
         ],
-        train_start_time="2025-01-01 00:00:00",
-        train_end_time="2025-06-30 00:00:00",
+        train_start_date=datetime.strptime(
+            "2025-01-01 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
+        train_end_date=datetime.strptime(
+            "2025-06-30 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
     )
 
     run_mock = MagicMock()
@@ -136,8 +146,12 @@ def test_train_and_register(mock_log_mlflow, mock_load_data, sample_df):
             "MACD_signal",
             "MACD_hist",
         ],
-        train_start_time="2025-01-01 00:00:00",
-        train_end_time="2025-06-30 00:00:00",
+        train_start_date=datetime.strptime(
+            "2025-01-01 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
+        train_end_date=datetime.strptime(
+            "2025-06-30 00:00:00", "%Y-%m-%d %H:%M:%S"
+        ).date(),
     )
 
     rmse = train_and_register("AAPL", "US", config)

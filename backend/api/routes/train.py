@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from celery.result import AsyncResult
 from celery_worker import celery_app
 from dataclasses import asdict
-
+from src.train_config import TrainConfig
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
