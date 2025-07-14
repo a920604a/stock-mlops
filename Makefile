@@ -12,13 +12,21 @@ LOCAL_TAG:=$(shell date +"%Y-%m-%d-%H-%M")
 LOCAL_IMAGE_NAME:=stock-mlops-backend:${LOCAL_TAG}
 
 
-.PHONY: up down logs clean ingest test build init integration_test quality_checks monitor
+.PHONY: up down logs clean ingest test build init integration_test quality_checks monitor reset
+
+
+reset:
+	sudo $(MAKE) clean
+	$(MAKE) init
+	$(DOCKER_COMPOSE) up -d --force-recreate
+	@echo " 清除完成並重新建置所有 image 與啟動容器"
+
 
 clean:
-	$(DOCKER_COMPOSE) down --volumes
-	rm -rf db/mlflow_db db/oltp db/model_meta_db db/olap
-	rm -rf data/mlflow_artifacts data/prometheus_data
-	rm -rf data/minio
+	sudo $(DOCKER_COMPOSE) down --volumes
+	sudo rm -rf db/mlflow_db db/oltp db/model_meta_db db/olap
+	sudo rm -rf data/mlflow_artifacts data/prometheus_data
+	sudo rm -rf data/minio
 
 init:
 	mkdir -p db/mlflow_db db/oltp db/model_meta_db db/olap
