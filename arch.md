@@ -129,7 +129,6 @@ stock-mlops-project/
 │           └── clickhouse.yaml
 ├── nginx                    # Nginx 反向代理與靜態資源設定
 │   └── nginx.conf
-├── pgdata [error opening dir] # PostgreSQL 資料目錄（可能被鎖定或無法存取）
 ├── README.MD                # 專案整體說明文件（包含架構、安裝與使用）
 ├── scripts                  # 自動化腳本（資料匯入、初始化、發佈等）
 │   ├── ingest.sh            # 資料匯入腳本

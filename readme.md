@@ -1,195 +1,186 @@
 
+
 # Stock Price Prediction with MLOps
 
 ## 🎯 Course Project
 
 ### Objective
 
-The goal of this project is to apply everything we have learned in this course to build an end-to-end machine learning project.
+The goal of this project is to apply everything learned in the course to build an end-to-end machine learning system with full MLOps workflow.
 
 ---
 
-## 🧩 Problem Statement
+## 📍 Problem Statement
 
-本專案旨在建立一個可持續維運的股票預測系統，實作完整的 MLOps 工作流程，包含資料收集、特徵工程、模型訓練、實驗追蹤、即時預測、部署與監控。
+This project aims to build a sustainable and maintainable stock price prediction system, implementing the complete MLOps lifecycle including data collection, feature engineering, model training, experiment tracking, real-time inference, deployment, and monitoring.
 
-使用者可以透過網頁查詢特定股票的預測價格與歷史趨勢圖；開發者則能定期訓練新模型、追蹤實驗、監控模型效能與資料漂移，並觸發自動 retraining。
+Users can query predicted stock prices and historical trend charts through a web interface. Developers can periodically retrain models, track experiments, monitor performance and data drift, and trigger auto-retraining.
 
 ---
 
-## 🚀 Technologies Used
+## 🧰 Technologies Used
 
-| 類別                    | 工具與框架                                                     |
-|-----------------------|-------------------------------------------------------------|
-| **Cloud / Infra**     | Docker Compose（可延伸至 EC2）、MinIO、PostgreSQL、ClickHouse |
-| **ML Pipeline**       | FastAPI, Scikit-learn, Pandas, MLflow                        |
-| **Workflow Orchestration** | Prefect 2                                                  |
-| **Monitoring**        | Evidently + Prometheus + Grafana                             |
-| **CI/CD**             | GitHub Actions                                               |
-| **Testing**           | pytest（單元 + 整合測試）                                     |
-| **Formatting / Hooks**| black, pre-commit, flake8                                    |
-| **IaC**               | Docker Compose + Volume + Network（可擴充至 Terraform）        |
+| Category                   | Tools & Frameworks                                                |
+| -------------------------- | ----------------------------------------------------------------- |
+| **Cloud / Infra**          | Docker Compose (extendable to EC2), MinIO, PostgreSQL, ClickHouse |
+| **ML Pipeline**            | FastAPI, Scikit-learn, Pandas, MLflow                             |
+| **Workflow Orchestration** | Prefect 2                                                         |
+| **Monitoring**             | Evidently + Prometheus + Grafana                                  |
+| **CI/CD**                  | GitHub Actions                                                    |
+| **Testing**                | pytest (unit + integration tests)                                 |
+| **Formatting / Hooks**     | black, pre-commit, flake8                                         |
+| **IaC**                    | Docker Compose + Volume + Network (extendable to Terraform)       |
 
 ---
 
 ## 🏗️ Project Structure
 
 ```
-
 .
 ├── backend/                  # Backend with API, ML logic, workflows
 │   ├── api/                  # FastAPI routes (train, predict)
 │   ├── src/                  # Feature engineering, model training/inference
-│   ├── monitor/              # Monitor via Evidently
-│   ├── tasks/                # Celery tasks for async training
-│   ├── workflows/            # Prefect ETL & Training pipelines
+│   ├── monitor/              # Monitoring logic using Evidently
+│   ├── tasks/                # Celery async tasks
+│   ├── workflows/            # Prefect ETL & training flows
 │   └── tests/                # Unit & integration tests
-├── frontend/                 # React 前端介面（Vite + React）
-├── data/, db/, pgdata/       # 資料夾與資料庫初始化
-├── monitor/                  # Prometheus & Grafana 設定
-├── Dockerfile.\*, docker-compose.yml
-├── Makefile, setup.md, 實作歷程.md
+├── frontend/                 # Frontend (Vite + React)
+├── data/, db/, pgdata/       # Data and DB initialization folders
+├── monitor/                  # Prometheus & Grafana configurations
+├── Dockerfile.*, docker-compose.yml
+├── Makefile, setup.md, implementation_log.md
 ├── README.md
-
 ```
 
 ---
 
-## 🧪 Model Lifecycle
+## 🔁 Model Lifecycle
 
-1. 使用 Prefect 定期觸發 ETL 與訓練流程
-2. 訓練結果紀錄至 MLflow，並註冊模型版本
-3. FastAPI 提供 `/predict` 與 `/train` API（支援 Celery 任務）
-4. 使用 Evidently 將模型 drift 指標輸出給 Prometheus
-5. Grafana Dashboard 顯示預測表現、資料漂移指標、系統指標等
+1. ETL and training pipelines are triggered regularly via Prefect
+2. Training results are logged to MLflow and registered as versioned models
+3. FastAPI serves `/predict` and `/train` APIs (Celery-supported)
+4. Evidently exports model drift metrics to Prometheus
+5. Grafana dashboards visualize prediction accuracy, drift metrics, and system metrics
 
 ---
 
 ## 🖥️ System Architecture (Mermaid)
+
 ```mermaid
 graph TD
-  subgraph 使用者操作
+  subgraph User Interaction
     A[Frontend<br>React]
     A -->|HTTP Request| B[Backend<br>FastAPI]
   end
 
-  subgraph 即時推論系統
-    B -->|查詢資料| D[PostgreSQL]
-    B -->|快取查詢| E[Redis]
-    B -->|呼叫| C[Model Runner<br>載入模型 + 預測]
+  subgraph Real-time Inference
+    B -->|Query Data| D[PostgreSQL]
+    B -->|Cached Query| E[Redis]
+    B -->|Call| C[Model Runner<br>Load + Predict]
   end
 
-  subgraph 批次處理與訓練
+  subgraph Batch Processing & Training
     F[Workflow<br>Prefect]
-    F -->|執行| G[ETL/Train<br>Data + Model]
-    G -->|記錄結果| H[MLflow Registry]
-    G -->|更新資料庫| D
+    F -->|Run| G[ETL/Train<br>Data + Model]
+    G -->|Log Results| H[MLflow Registry]
+    G -->|Update DB| D
   end
 
-  subgraph 模型監控系統
+  subgraph Model Monitoring
     I[monitor.py<br>Evidently Exporter]
     I -->|Metrics| J[Prometheus]
-    J -->|資料來源| K[Grafana Dashboard]
-    I -->|監控歷史資料| D
+    J -->|Datasource| K[Grafana Dashboard]
+    I -->|Drift Detection| D
   end
 ```
-
 
 ---
 
 ## 📈 Evaluation Checklist
 
-### ✅ Problem Description
+### ✅ Problem Definition
 
-* ✔️ 項目明確定義：股票預測 + 模型管理
+* ✔️ Well-defined scope: stock prediction + model lifecycle
 
-### ☁️ Cloud / Infrastructure
+### ☁️ Infrastructure
 
-* ✔️ 使用 Docker Compose 管理多服務
-* ✔️ 可延伸部署至雲端 + IaC（已實作 MinIO, DB volume, Prometheus）
+* ✔️ Docker Compose setup with multiple services
+* ✔️ Cloud-ready and IaC-friendly (MinIO, DB volumes, Prometheus)
 
-### 📊 Experiment Tracking
+### 🔬 Experiment Tracking
 
-* ✔️ 使用 MLflow 實驗紀錄 + 模型註冊
+* ✔️ MLflow for logging experiments and model versioning
 
-### 🔁 Workflow Orchestration
+### 📅 Workflow Orchestration
 
-* ✔️ Prefect 2 實作 ETL 與訓練流程
+* ✔️ Prefect 2 for ETL and training flows
 
-### 🚢 Model Deployment
+### 🚀 Model Deployment
 
-* ✔️ 使用 FastAPI 提供預測 API，並容器化部署
+* ✔️ FastAPI for model inference (containerized API)
 
-### 📡 Monitoring
+### 📊 Monitoring
 
-* ✔️ Evidently + Prometheus + Grafana 組合進行資料/模型監控
+* ✔️ Evidently + Prometheus + Grafana for data/model monitoring
 
 ### 🔁 Reproducibility
 
-* ✔️ 完整的執行指令：Makefile + setup.md + requirements + Docker
+* ✔️ Makefile + setup.md + requirements + Docker for consistent setup
 
-### 🧰 Best Practices
+### 🧪 Best Practices
 
 * [x] Unit tests
 * [x] Integration tests
-* [x] Code formatter & Linter（black, flake8）
-* [x] Makefile
+* [x] Code formatting (black, flake8)
+* [x] Makefile automation
 * [x] Pre-commit hooks
 * [x] GitHub Actions for CI
 
 ---
 
-## 📦 Installation Guide
+## ⚙️ Installation Guide
 
 ```bash
-# 建立虛擬環境
+# Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
 
-# 啟動所有服務
+# Start all services
 docker compose up --build
 
-# 啟動 Prefect flow 或單次訓練
+# Run Prefect workflow or one-off training
 make train
 make workflow
 ```
 
 ---
 
-## 🔍 Dataset
+## 📊 Dataset
 
-使用台股與美股歷史資料（例如：2330.TW、AAPL、TSM）：
+Historical stock data from TW & US markets (e.g., 2330.TW, AAPL, TSM):
 
-* 擷取來源：Yahoo Finance
-* 經過 ETL 處理後儲存為 Parquet（見 workflows/parquet）
+* Source: Yahoo Finance
+* Transformed via ETL and stored in Parquet format (see `workflows/parquet/`)
 
 ---
 
 ## 🔗 Useful Resources
 
-* [MLFlow Docs](https://mlflow.org/)
-* [Evidently Docs](https://docs.evidentlyai.com/)
-* [Prefect 2](https://docs.prefect.io/)
+* [MLFlow Documentation](https://mlflow.org/)
+* [Evidently AI Docs](https://docs.evidentlyai.com/)
+* [Prefect 2 Docs](https://docs.prefect.io/)
 * [Grafana Dashboards](https://grafana.com/grafana/dashboards)
 
 ---
 
-## 🌐 Projects Gallery
+## 🌐 Project Gallery
 
-本專案將同步提交至 DataTalks Projects Gallery
-👉 [Projects Gallery App](https://datatalksclub-projects.streamlit.app/)
+This project is featured in the DataTalks Projects Gallery:
+🔗 [Projects Gallery App](https://datatalksclub-projects.streamlit.app/)
 
 ---
 
 ## 📜 License
 
 MIT License.
-
-```
-
----
-
-若你希望將這個 `README.md` 放入目前 repo 的根目錄，請將這份內容覆蓋 `README.MD`，並確保你的 `Makefile` 與 `setup.md` 包含正確的執行方式。
-如需我再幫你補上圖表（如 Grafana screenshot、MLflow 範例）、功能說明 GIF、或是 CI badge，也可以再告訴我！
-```
