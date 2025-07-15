@@ -1,78 +1,82 @@
-// frontend/src/pages/Datasets.jsx
-import { useEffect, useState } from "react";
-import { fetchDatasets } from "../api/datasets";
+import {
+    Box, Heading, VStack, Input, Button, Table, Thead, Tr, Th, Tbody, Td,
+    Alert, AlertIcon, Text, Spinner,
+} from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
-function Datasets() {
-    const [datasets, setDatasets] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [ticker, setTicker] = useState("");
+export default function Datasets() {
+    const [ticker, setTicker] = useState('')
+    const [exchange, setExchange] = useState('US')
+    const [startDate, setStartDate] = useState('')
+    const [endDate, setEndDate] = useState('')
+    const [datasets, setDatasets] = useState([])
+    const [loading, setLoading] = useState(false)
 
-    const loadDatasets = async () => {
-        setLoading(true);
+    const fetchDatasets = async () => {
+        setLoading(true)
         try {
-            const data = await fetchDatasets(ticker);
-            setDatasets(data);
+            const res = await axios.get('http://localhost:8001/api/datasets')
+            setDatasets(res.data)
         } catch (err) {
-            console.error("❌ 載入資料集失敗", err);
+            console.error('載入資料集失敗')
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
+
+    const handleIngest = async () => {
+        await axios.post('http://localhost:8001/api/datasets', {
+            ticker,
+            exchange,
+            start_date: startDate,
+            end_date: endDate,
+        })
+        fetchDatasets()
+    }
 
     useEffect(() => {
-        loadDatasets();
-    }, []);
+        fetchDatasets()
+    }, [])
 
     return (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">📊 資料集管理</h2>
+        <Box p={6}>
+            <Heading size="lg" mb={4}>📂 資料集管理</Heading>
 
-            <div className="mb-4">
-                <input
-                    type="text"
-                    placeholder="輸入 ticker 搜尋 (如 AAPL)"
-                    value={ticker}
-                    onChange={(e) => setTicker(e.target.value)}
-                    className="border p-2 rounded mr-2"
-                />
-                <button
-                    onClick={loadDatasets}
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                >
-                    搜尋
-                </button>
-            </div>
+            <VStack spacing={4} align="stretch" mb={6}>
+                <Input placeholder="股票代號 (ex: AAPL)" value={ticker} onChange={e => setTicker(e.target.value)} />
+                <Input placeholder="交易所 (ex: US)" value={exchange} onChange={e => setExchange(e.target.value)} />
+                <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                <Button colorScheme="blue" onClick={handleIngest}>新增 / 更新資料</Button>
+            </VStack>
 
             {loading ? (
-                <p>載入中...</p>
-            ) : datasets.length === 0 ? (
-                <p>無資料</p>
+                <Spinner />
             ) : (
-                <table className="w-full border table-auto">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border p-2">Ticker</th>
-                            <th className="border p-2">Exchange</th>
-                            <th className="border p-2">資料起迄</th>
-                            <th className="border p-2">筆數</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {datasets.map((ds) => (
-                            <tr key={`${ds.ticker}-${ds.exchange}`}>
-                                <td className="border p-2">{ds.ticker}</td>
-                                <td className="border p-2">{ds.exchange}</td>
-                                <td className="border p-2">
-                                    {ds.start_date} ~ {ds.end_date}
-                                </td>
-                                <td className="border p-2">{ds.count}</td>
-                            </tr>
+                <Table variant="simple" size="sm">
+                    <Thead bg="gray.100">
+                        <Tr>
+                            <Th>Ticker</Th>
+                            <Th>Exchange</Th>
+                            <Th>期間</Th>
+                            <Th>資料筆數</Th>
+                            <Th>已轉檔</Th>
+                        </Tr>
+                    </Thead>
+                    <Tbody>
+                        {datasets.map((d, idx) => (
+                            <Tr key={idx}>
+                                <Td>{d.ticker}</Td>
+                                <Td>{d.exchange}</Td>
+                                <Td>{d.start_date} ~ {d.end_date}</Td>
+                                <Td>{d.count}</Td>
+                                <Td>{d.parquet_ready ? '✅' : '❌'}</Td>
+                            </Tr>
                         ))}
-                    </tbody>
-                </table>
+                    </Tbody>
+                </Table>
             )}
-        </div>
-    );
+        </Box>
+    )
 }
-
-export default Datasets;

@@ -1,33 +1,18 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import {
-    Box,
-    Heading,
-    Table,
-    Thead,
-    Tbody,   // 注意這裡是大寫 T 小寫 b
-    Tr,
-    Th,
-    Td,
-    Button,
-    Spinner,
-    Text,
+    Box, Table, Thead, Tbody, Tr, Th, Td,
+    Button, Spinner, Text, Heading,
 } from '@chakra-ui/react'
-
 
 export default function ModelList() {
     const [models, setModels] = useState([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        axios
-            .get('http://localhost:8001/api/models') // 後端 API 路徑
-            .then((res) => {
-                setModels(res.data)
-            })
-            .catch(() => {
-                alert('讀取模型清單失敗')
-            })
+        axios.get('http://localhost:8001/api/models')
+            .then((res) => setModels(res.data))
+            .catch(() => alert('讀取模型清單失敗'))
             .finally(() => setLoading(false))
     }, [])
 
@@ -41,10 +26,7 @@ export default function ModelList() {
     }
 
     return (
-        <Box p="6">
-            <Heading size="lg" mb="6">
-                📦 已訓練模型管理
-            </Heading>
+        <Box>
             <Table variant="simple" size="md" borderWidth="1px" borderRadius="md">
                 <Thead bg="gray.100">
                     <Tr>
