@@ -54,6 +54,18 @@ services:
     networks:
       - monitor-net
 
+  blackbox-exporter:
+    image: prom/blackbox-exporter
+    container_name: blackbox-exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./monitor/blackbox:/config
+    command:
+      - "--config.file=/config/blackbox.yml"
+    networks:
+      - monitor-net
+
 networks:
   monitor-net:
     external: false
