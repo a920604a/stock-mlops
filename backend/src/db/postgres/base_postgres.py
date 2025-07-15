@@ -1,4 +1,4 @@
-# backend/src/database.py
+# baend/src/db/postgres/base_postges.py
 import os
 
 from dotenv import load_dotenv

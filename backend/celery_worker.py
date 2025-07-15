@@ -1,4 +1,4 @@
-# backend/celery_worker.py
+# celery_worker.py
 from celery import Celery
 import os
 

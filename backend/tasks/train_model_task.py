@@ -1,7 +1,7 @@
-# backend/tasks/train_model_task.py
+# tasks/train_model_task.py
 from datetime import datetime
 from celery_worker import celery_app
-from src.train import train_and_register
+from src.model_training.train import train_and_register
 from src.train_config import TrainConfig
 
 

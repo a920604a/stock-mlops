@@ -1,9 +1,9 @@
 # src/data_loader.py
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
 
 import pandas as pd
-from src.database_olap import client
+from src.db.clickhouse.base_clickhouse import client
 
 
 def load_stock_data(

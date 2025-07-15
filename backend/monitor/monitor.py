@@ -29,9 +29,11 @@ from evidently.metrics import (
 )
 
 
-from src.data_loader import load_stock_data
-from src.predict import Predictor
-from src.create_clickhouse_table import create_clickhouse_table as create_predict_tb
+from src.db.clickhouse.reader import load_stock_data
+from src.inference.predict import Predictor
+from src.db.clickhouse.schema.create_clickhouse_table import (
+    create_clickhouse_table as create_predict_tb,
+)
 
 from monitor.create_monitor_tb import create_clickhouse_table as create_monitor_tb
 from monitor.save_result import insert_monitoring_result_to_clickhouse

@@ -1,13 +1,13 @@
-# backend/api/routes/train.py
+# api/routes/train.py
 from fastapi import APIRouter, BackgroundTasks
-from api.schemas.train_request import TrainRequest, TrainResponse
 import logging
 from tasks.train_model_task import train_model_task
 from fastapi import HTTPException
+from dataclasses import asdict
 from celery.result import AsyncResult
 from celery_worker import celery_app
-from dataclasses import asdict
 from src.train_config import TrainConfig
+from api.schemas.train_request import TrainRequest, TrainResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

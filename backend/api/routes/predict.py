@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from src.predict import Predictor
+from src.inference.predict import Predictor
 from api.schemas.predict_request import PredictRequest, PredictResponse
 from datetime import datetime
 

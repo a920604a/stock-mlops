@@ -4,11 +4,15 @@ from typing import Optional
 
 import mlflow
 import pandas as pd
-from src.data_loader import get_close_price, get_last_available_date, load_stock_data
-from src.database_olap import client  # 你已有的 ClickHouse client
-from src.database_oltp import SessionLocal
-from src.model_available import list_models
-from src.model_save import ModelMetadata
+from src.db.clickhouse.reader import (
+    get_close_price,
+    get_last_available_date,
+    load_stock_data,
+)
+from src.db.clickhouse.base_clickhouse import client  # 你已有的 ClickHouse client
+from src.db.postgres.base_postgres import SessionLocal
+from src.db.postgres.crud.model_available import list_models
+from src.db.postgres.crud.model_save import ModelMetadata
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -149,7 +153,7 @@ class Predictor:
 
 if __name__ == "__main__":
     #
-    from create_clickhouse_table import create_clickhouse_table
+    from src.db.clickhouse.schema.create_clickhouse_table import create_clickhouse_table
 
     create_clickhouse_table()
 

@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytest
-from src.train import (
+from backend.src.model_training.train import (
     log_model_to_mlflow,
     prepare_features,
     train_and_register,

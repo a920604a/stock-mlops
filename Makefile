@@ -66,13 +66,13 @@ all: init up ingest
 build: init up
 
 train:
-	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python src/train.py
+	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python src/model_training/train.py
 
 monitor:
 	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python -m monitor.monitor
 
 predict:
-	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/predict.py
+	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/inference/predict.py
 
 quality_checks:
 	isort .

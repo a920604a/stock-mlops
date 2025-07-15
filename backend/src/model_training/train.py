@@ -8,8 +8,8 @@ from datetime import datetime
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-from src.data_loader import load_stock_data
-from src.model_save import save_model_metadata
+from src.db.clickhouse.reader import load_stock_data
+from src.db.postgres.crud.model_save import save_model_metadata
 from src.train_config import TrainConfig
 
 
