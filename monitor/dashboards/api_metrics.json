@@ -1,0 +1,67 @@
+{
+    "id": null,
+    "uid": "api-metrics",
+    "title": "FastAPI Metrics Dashboard",
+    "tags": [
+        "fastapi",
+        "prometheus",
+        "api"
+    ],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+        {
+            "type": "timeseries",
+            "title": "API Request Rate (by handler + method)",
+            "targets": [
+                {
+                    "expr": "sum by (handler, method) (rate(http_requests_total[1m]))",
+                    "legendFormat": "{{handler}} [{{method}}]",
+                    "refId": "A"
+                }
+            ],
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            }
+        },
+        {
+            "type": "timeseries",
+            "title": "Average Request Duration (s)",
+            "targets": [
+                {
+                    "expr": "rate(http_request_duration_seconds_sum[1m]) / rate(http_request_duration_seconds_count[1m])",
+                    "legendFormat": "Avg duration",
+                    "refId": "A"
+                }
+            ],
+            "gridPos": {
+                "x": 12,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            }
+        },
+        {
+            "type": "timeseries",
+            "title": "API Error Rate (%)",
+            "targets": [
+                {
+                    "expr": "100 * sum(rate(http_requests_exceptions_total[1m])) by (handler) / sum(rate(http_requests_total[1m])) by (handler)",
+                    "legendFormat": "{{handler}}",
+                    "refId": "A"
+                }
+            ],
+            "gridPos": {
+                "x": 0,
+                "y": 8,
+                "w": 24,
+                "h": 8
+            }
+        }
+    ]
+}

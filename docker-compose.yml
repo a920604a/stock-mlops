@@ -32,6 +32,8 @@ services:
       - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
     volumes:
       - ./backend:/app
+    networks:
+      - monitor-net
 
   backend2:
     build:
@@ -57,6 +59,8 @@ services:
       - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
     volumes:
       - ./backend:/app
+    networks:
+      - monitor-net
 
   raw_db: # save raw data OLTP
     image: postgres:15
@@ -68,6 +72,8 @@ services:
       - "5412:5432"
     volumes:
       - ./db/oltp:/var/lib/postgresql/data
+    networks:
+      - monitor-net
 
   model_meta_db: # save model meta data
     image: postgres:15
@@ -80,11 +86,15 @@ services:
     volumes:
       - ./db/model_meta_db:/var/lib/postgresql/data
       - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - monitor-net
 
   redis:
     image: redis:7
     ports:
       - "6379:6379"
+    networks:
+      - monitor-net
 
   celery:
     build:
@@ -109,7 +119,8 @@ services:
       - backend2
     volumes:
       - ./backend:/app
-
+    networks:
+      - monitor-net
 
   mlflow:
     build:
@@ -130,6 +141,8 @@ services:
       --default-artifact-root s3://mlflow-artifacts
     ports:
       - "5010:5000"
+    networks:
+      - monitor-net
 
   mlflow-db:
     image: postgres:15
@@ -141,28 +154,8 @@ services:
       - ./db/mlflow_db:/var/lib/postgresql/data
     ports:
       - "5422:5432"
-
-  prometheus:
-    image: prom/prometheus
-    user: "1000"
-    volumes:
-      - ./monitor/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./data/prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-  grafana:
-    image: grafana/grafana-enterprise
-    user: "472"
-    ports:
-      - "3002:3000"
-    volumes:
-      - ./monitor/dashboards:/var/lib/grafana/dashboards   # dashboard JSON
-      - ./monitor/provisioning:/etc/grafana/provisioning # provisioning 設定
-    environment:
-      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-      - GF_SECURITY_ADMIN_PASSWORD=admin12345  # 可設定 Grafana admin 密碼
-      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource
-    restart: always
+    networks:
+      - monitor-net
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.3
@@ -175,6 +168,8 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+    networks:
+      - monitor-net
 
   minio:
     image: minio/minio
@@ -188,6 +183,8 @@ services:
       - MINIO_ROOT_PASSWORD=mlflow123
     volumes:
       - ./data/minio:/data
+    networks:
+      - monitor-net
   init-minio:
     image: minio/mc
     depends_on:
@@ -199,3 +196,9 @@ services:
       MINIO_ROOT_PASSWORD: mlflow123
     volumes:
       - ./scripts/init_minio.sh:/scripts/init_minio.sh:ro
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    external: false

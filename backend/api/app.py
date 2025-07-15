@@ -2,8 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import predict
 from api.routes import train
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 
 # 設定允許的來源
 app.add_middleware(
