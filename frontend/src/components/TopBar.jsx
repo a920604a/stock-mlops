@@ -3,9 +3,9 @@ import { NavLink } from 'react-router-dom';
 
 const navItems = [
     { label: '首頁', path: '/' },
+    { label: '資料集管理', path: '/datasets' }, 
     { label: '模型管理', path: '/models' },
-    { label: '資料集管理', path: '/datasets' }, // ✅ 新增
-    { label: '生產監控', path: '/production' }, // ✅ 新增
+    { label: '生產監控', path: '/production' }, 
 ];
 
 export default function TopBar() {

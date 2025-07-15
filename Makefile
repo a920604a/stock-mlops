@@ -1,5 +1,6 @@
 # ========== 參數與變數 ==========
 DOCKER_COMPOSE = docker compose
+DOCKER_COMPOSE_MONITOR = docker compose -f docker-compose.monitor.yml
 
 TRAIN_BACKEND := backend1
 PREDICT_BACKEND := backend2
@@ -14,7 +15,8 @@ LOCAL_IMAGE_NAME := stock-mlops-backend:${LOCAL_TAG}
 MAKEFLAGS += --no-builtin-rules
 
 .PHONY: help up down logs clean ingest test build init integration_test quality_checks monitor reset frontend \
-        setup retrain pipeline ci restart publish frontend-dev frontend-build
+        setup retrain pipeline ci restart publish frontend-dev frontend-build \
+        monitor-up monitor-down monitor-logs
 
 # ========== 指令說明 ==========
 help:
@@ -95,6 +97,11 @@ build: init up ## 建置與啟動
 
 all: init up ingest ## 同 setup，但命名與傳統相符
 
+up-all: ## 啟動所有服務 + 監控模組
+	$(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE_MONITOR) up -d
+	@echo "🚀 主系統與監控模組已全部啟動"
+
 pipeline: quality_checks test train predict ## 模型完整開發流程
 
 retrain: train predict ## 訓練與預測
@@ -103,3 +110,14 @@ ci: quality_checks test integration_test ## CI/CD 使用的檢查與測試流程
 
 publish: quality_checks build ## 品質檢查與建置後發布
 	LOCAL_IMAGE_NAME=$(LOCAL_IMAGE_NAME) bash scripts/publish.sh
+
+
+monitor-up: ## 啟動監控模組（Prometheus, Grafana 等）
+	$(DOCKER_COMPOSE_MONITOR) up -d
+	@echo "📈 監控模組已啟動"
+
+monitor-down: ## 關閉監控模組
+	$(DOCKER_COMPOSE_MONITOR) down
+
+monitor-logs: ## 查看監控模組日誌
+	$(DOCKER_COMPOSE_MONITOR) logs -f
