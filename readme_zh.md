@@ -175,13 +175,6 @@ make workflow
 
 ---
 
-## 🌐 Projects Gallery
-
-本專案將同步提交至 DataTalks Projects Gallery
-👉 [Projects Gallery App](https://datatalksclub-projects.streamlit.app/)
-
----
-
 ## 📜 License
 
 MIT License.

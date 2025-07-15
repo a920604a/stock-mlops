@@ -174,13 +174,6 @@ Historical stock data from TW & US markets (e.g., 2330.TW, AAPL, TSM):
 
 ---
 
-## 🌐 Project Gallery
-
-This project is featured in the DataTalks Projects Gallery:
-🔗 [Projects Gallery App](https://datatalksclub-projects.streamlit.app/)
-
----
-
 ## 📜 License
 
 MIT License.
