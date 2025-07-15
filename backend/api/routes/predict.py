@@ -5,6 +5,18 @@ from datetime import datetime
 
 router = APIRouter()
 
+from prometheus_client import Counter, Histogram
+
+predict_success_total = Counter(
+    "predict_success_total", "Number of successful predict jobs"
+)
+predict_failure_total = Counter(
+    "predict_failure_total", "Number of failed predict jobs"
+)
+predict_duration_seconds = Histogram(
+    "predict_duration_seconds", "Predicting duration in seconds"
+)
+
 
 @router.post("/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
@@ -19,6 +31,7 @@ def predict(request: PredictRequest):
         )
 
         print(f"predicted_price {predicted_price} vs actual price {actual_close}")
+        predict_success_total.inc()
         return PredictResponse(
             ticker=request.ticker,
             exchange=request.exchange,
@@ -29,4 +42,5 @@ def predict(request: PredictRequest):
             msg=msg,
         )
     except Exception as e:
+        predict_failure_total.inc()
         raise HTTPException(status_code=400, detail=str(e))
