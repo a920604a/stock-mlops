@@ -5,7 +5,7 @@ import {
   FormControl, FormLabel, Select
 } from '@chakra-ui/react'
 
-export default function Train() {
+export default function TrainForm() {
   const [ticker, setTicker] = useState('')
   const [exchange, setExchange] = useState('US')
 

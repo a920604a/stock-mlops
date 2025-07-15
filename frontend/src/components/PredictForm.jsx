@@ -4,7 +4,7 @@ import {
     Box, Heading, Input, Button, Text, VStack, Alert, AlertIcon,
 } from '@chakra-ui/react'
 
-export default function Predict() {
+export default function PredictForm() {
     const [ticker, setTicker] = useState('')
     const [exchange, setExchange] = useState('US')
     const [targetDate, setTargetDate] = useState('')
