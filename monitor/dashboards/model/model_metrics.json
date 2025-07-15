@@ -1,0 +1,115 @@
+{
+    "id": null,
+    "uid": null,
+    "title": "Model Training Stats",
+    "tags": [
+        "mlops",
+        "training"
+    ],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+        {
+            "type": "stat",
+            "title": "\u2705 \u6210\u529f\u8a13\u7df4\u7e3d\u6578",
+            "id": 1,
+            "datasource": "Prometheus",
+            "targets": [
+                {
+                    "expr": "train_success_total",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            }
+        },
+        {
+            "type": "stat",
+            "title": "\u274c \u5931\u6557\u8a13\u7df4\u7e3d\u6578",
+            "id": 2,
+            "datasource": "Prometheus",
+            "targets": [
+                {
+                    "expr": "train_failure_total",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            }
+        },
+        {
+            "type": "gauge",
+            "title": "\ud83d\udcc8 \u8a13\u7df4\u6210\u529f\u6bd4\u7387",
+            "id": 3,
+            "datasource": "Prometheus",
+            "targets": [
+                {
+                    "expr": "train_success_total / (train_success_total + train_failure_total) * 100",
+                    "refId": "C"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "min": 0,
+                    "max": 100,
+                    "unit": "percent",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "green",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "x": 0,
+                "y": 4,
+                "w": 12,
+                "h": 5
+            }
+        }
+    ]
+}

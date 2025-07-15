@@ -1,0 +1,69 @@
+{
+  "id": null,
+  "uid": null,
+  "title": "System Metrics",
+  "tags": [
+    "system",
+    "infra"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "timeSeries",
+      "title": "\ud83e\udde0 \u8a18\u61b6\u9ad4\u4f7f\u7528\u7387 (%)",
+      "id": 1,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeSeries",
+      "title": "\ud83d\udda5\ufe0f CPU \u4f7f\u7528\u7387 (%)",
+      "id": 2,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "100 - (avg by (instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
+          "refId": "B"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeSeries",
+      "title": "\ud83d\udcbd \u78c1\u789f\u53ef\u7528\u7a7a\u9593 (%)",
+      "id": 3,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_filesystem_avail_bytes / node_filesystem_size_bytes * 100",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 4
+      }
+    }
+  ]
+}
