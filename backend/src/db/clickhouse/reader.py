@@ -1,9 +1,13 @@
-# src/data_loader.py
 from datetime import datetime
 from typing import List, Tuple, Optional
-
 import pandas as pd
-from src.db.clickhouse.base_clickhouse import client
+from src.db.clickhouse.connection_pool import clickhouse_pool
+
+
+def query_df(client, query: str) -> pd.DataFrame:
+    data, columns = client.execute(query, with_column_types=True)
+    column_names = [col[0] for col in columns]
+    return pd.DataFrame(data, columns=column_names)
 
 
 def load_stock_data(
@@ -26,16 +30,16 @@ def load_stock_data(
         base_query += f" AND Date <= '{end_date}'"
 
     base_query += " ORDER BY Date"
-    # print(f"base_query {base_query}")
 
-    df = client.query_df(base_query)
+    with clickhouse_pool as client:
+        # df = client.query_df(base_query)
+        df = query_df(client, base_query)
     return df
 
 
 def get_last_available_date(
     target_date: datetime, ticker: str, exchange: str
 ) -> Optional[datetime]:
-    # SQL：找 target_date 前所有資料
     base_query = f"""
         SELECT DISTINCT Date
         FROM stock_prices
@@ -44,13 +48,14 @@ def get_last_available_date(
         ORDER BY Date DESC
         LIMIT 1
     """
-    # print(f"base_query {base_query}")
 
-    df = client.query_df(base_query)
+    with clickhouse_pool as client:
+        # df = client.query_df(base_query)
+
+        df = query_df(client, base_query)
 
     if df.empty:
         return None
-    # 回傳最接近 target_date 的那天
     return df.iloc[0]["Date"]
 
 
@@ -58,9 +63,6 @@ def get_close_price(
     target_date: datetime, ticker: str, exchange: str
 ) -> Optional[float]:
     date_str = target_date.strftime("%Y-%m-%d")
-    """
-    查詢指定股票與日期的實際收盤價，若無資料則回傳 None。
-    """
     query = f"""
         SELECT Close FROM stock_prices
         WHERE ticker = '{ticker}'
@@ -69,8 +71,11 @@ def get_close_price(
         ORDER BY Date DESC
         LIMIT 1
     """
-    df = client.query_df(query)
-    # print(f"base_query {query}")
+
+    with clickhouse_pool as client:
+        # df = client.query_df(query)
+
+        df = query_df(client, base_query)
 
     if df.empty:
         return None
@@ -78,7 +83,7 @@ def get_close_price(
 
 
 def get_stock_price_datasets() -> List[Tuple[str, str, str, str, int]]:
-    sql = """
+    base_query = """
     SELECT
         ticker,
         exchange,
@@ -89,5 +94,10 @@ def get_stock_price_datasets() -> List[Tuple[str, str, str, str, int]]:
     GROUP BY ticker, exchange
     ORDER BY ticker, exchange
     """
-    df = client.query_df(sql)
-    return list(df.itertuples(index=False, name=None))  # ← 回傳 List[Tuple]
+
+    with clickhouse_pool as client:
+        # df = client.query_df(sql)
+
+        df = query_df(client, base_query)
+
+    return list(df.itertuples(index=False, name=None))

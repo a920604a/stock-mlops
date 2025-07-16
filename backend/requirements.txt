@@ -19,3 +19,4 @@ evidently==0.7.10
 celery
 prometheus-fastapi-instrumentator
 prometheus_client
+clickhouse_driver

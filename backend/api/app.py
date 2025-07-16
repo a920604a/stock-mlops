@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import datasets
-
 from api.routes import predict
 from api.routes import train
+from api.routes import etl
+
+
 from prometheus_fastapi_instrumentator import Instrumentator
 
 
@@ -23,3 +25,4 @@ app.add_middleware(
 app.include_router(predict.router, prefix="/api")
 app.include_router(train.router, prefix="/api")
 app.include_router(datasets.router, prefix="/api", tags=["datasets"])
+app.include_router(etl.router, prefix="/api")

@@ -8,3 +8,8 @@ class DatasetInfo(BaseModel):
     end_date: str
     count: int
     parquet_ready: bool  # 是否已轉檔 (此處示意，實務可連接其他服務判斷)
+
+
+class TickerExchange(BaseModel):
+    ticker: str
+    exchange: str
