@@ -11,6 +11,7 @@ router = APIRouter()
 @router.get("/datasets", response_model=List[DatasetInfo])
 def get_datasets():
     try:
+        print("dataset")
         dataset_source = StockPriceDataset()
         return dataset_source.fetch_all()
     except Exception as e:

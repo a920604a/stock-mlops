@@ -1,23 +1,28 @@
 import {
   Box, Heading, Table, Thead, Tr, Th, Tbody, Td,
-  Spinner, Text, useToast, Button
+  Spinner, Text, useToast, Button, Input, HStack, VStack, List, ListItem, CloseButton
 } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
-import { fetchDatasets } from '../api/datasets'
+import { fetchDatasets, insertETL } from '../api/datasets'
 import axios from 'axios'
 
 export default function Datasets() {
   const [datasets, setDatasets] = useState([])
   const [loading, setLoading] = useState(false)
-  const toast = useToast()  // ✅ 初始化 toast
 
+  const [tickerInput, setTickerInput] = useState('')
+  const [exchangeInput, setExchangeInput] = useState('')
+  const [etlList, setEtlList] = useState([]) // {ticker, exchange} 陣列
+
+  const toast = useToast()
+
+  // 載入現有資料集
   const loadDatasets = async () => {
     setLoading(true)
     try {
       const data = await fetchDatasets()
       setDatasets(data)
     } catch (err) {
-      console.error('❌ 載入資料集失敗', err)
       toast({
         title: '資料集載入失敗',
         status: 'error',
@@ -29,27 +34,66 @@ export default function Datasets() {
     }
   }
 
+  // 新增輸入的 ticker & exchange 到 ETL 清單
+  const addToEtlList = () => {
+    if (!tickerInput.trim() || !exchangeInput.trim()) {
+      toast({
+        title: '請輸入完整的 Ticker 與 Exchange',
+        status: 'warning',
+        duration: 2000,
+        isClosable: true,
+      })
+      return
+    }
+
+    // 避免重複加入同樣的 ticker-exchange
+    const exists = etlList.some(
+      item =>
+        item.ticker.toUpperCase() === tickerInput.toUpperCase() &&
+        item.exchange.toUpperCase() === exchangeInput.toUpperCase()
+    )
+    if (exists) {
+      toast({
+        title: '該股票已在 ETL 清單中',
+        status: 'info',
+        duration: 2000,
+        isClosable: true,
+      })
+      return
+    }
+
+    setEtlList(prev => [
+      ...prev,
+      { ticker: tickerInput.toUpperCase(), exchange: exchangeInput.toUpperCase() },
+    ])
+
+    // 清空輸入框
+    setTickerInput('')
+    setExchangeInput('')
+  }
+
+  // 從 ETL 清單移除項目
+  const removeFromEtlList = (index) => {
+    setEtlList(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // 觸發 ETL API
   const triggerETL = async () => {
     try {
-      await axios.post('/api/run-etl', [
-        { ticker: 'AAPL', exchange: 'US' },
-        { ticker: 'TSM', exchange: 'US' },
-        { ticker: '2330.TW', exchange: 'TW' },
-      ])
+      const res = await insertETL(etlList)
       toast({
         title: '✅ ETL 任務已觸發',
+        description: res.message || '執行成功',
         status: 'success',
         duration: 3000,
         isClosable: true,
       })
 
-      // 3 秒後自動重新載入
-      setTimeout(() => {
-        loadDatasets()
-      }, 3000)
-
+      // ✅ 清空清單與表單
+      setEtlList([])
+      setTickerInput('')
+      setExchangeInput('')
     } catch (err) {
-      console.error('❌ 觸發 ETL 失敗', err)
       toast({
         title: 'ETL 觸發失敗',
         description: err?.response?.data?.detail || '伺服器錯誤',
@@ -68,11 +112,65 @@ export default function Datasets() {
     <Box p={6}>
       <Heading size="lg" mb={4}>📊 資料集概況</Heading>
 
-      {/* ✅ 加上觸發 ETL 按鈕 */}
-      <Button onClick={triggerETL} colorScheme="teal" size="sm" mb={4}>
+      {/* 輸入欄位 */}
+      <HStack mb={4}>
+        <Input
+          placeholder="Ticker (例如 AAPL)"
+          value={tickerInput}
+          onChange={e => setTickerInput(e.target.value)}
+          maxW="150px"
+          textTransform="uppercase"
+        />
+        <Input
+          placeholder="Exchange (例如 US)"
+          value={exchangeInput}
+          onChange={e => setExchangeInput(e.target.value)}
+          maxW="100px"
+          textTransform="uppercase"
+        />
+        <Button onClick={addToEtlList} colorScheme="blue">
+          新增到 ETL 清單
+        </Button>
+      </HStack>
+
+      {/* 顯示 ETL 清單 */}
+      {etlList.length > 0 && (
+        <Box mb={4}>
+          <Heading size="md" mb={2}>待執行 ETL 的股票</Heading>
+          <List spacing={2}>
+            {etlList.map((item, idx) => (
+              <ListItem
+                key={idx}
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius="md"
+                p={2}
+              >
+                <Box>
+                  {item.ticker} / {item.exchange}
+                </Box>
+                <CloseButton onClick={() => removeFromEtlList(idx)} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      )}
+
+      {/* 執行 ETL 按鈕 */}
+      <Button
+        onClick={triggerETL}
+        colorScheme="teal"
+        size="md"
+        mb={6}
+        isDisabled={etlList.length === 0}
+      >
         🚀 執行資料擷取（ETL）
       </Button>
 
+      {/* 顯示資料集表格或提示 */}
       {loading ? (
         <Spinner />
       ) : datasets.length === 0 ? (

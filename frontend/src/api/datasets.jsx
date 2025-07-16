@@ -8,3 +8,10 @@ export const fetchDatasets = async () => {
   });
   return res.data;
 };
+
+
+// 觸發 ETL 任務
+export const insertETL = async (etlList) => {
+  const res = await axios.post(`${BASE_URL}/run-etl`, etlList);
+  return res.data;
+};
