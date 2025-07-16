@@ -122,4 +122,4 @@ monitor-down: ## 關閉監控模組
 monitor-logs: ## 查看監控模組日誌
 	$(DOCKER_COMPOSE_MONITOR) logs -f
 
-dev-setup: reset frontend-dev ingeset train predict monitor monitor-up
+dev-setup: reset ingest train predict monitor monitor-up frontend-dev

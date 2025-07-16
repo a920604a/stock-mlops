@@ -22,5 +22,4 @@ app.add_middleware(
 
 app.include_router(predict.router, prefix="/api")
 app.include_router(train.router, prefix="/api")
-
 app.include_router(datasets.router, prefix="/api", tags=["datasets"])

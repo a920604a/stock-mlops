@@ -1,6 +1,6 @@
 # src/data_loader.py
 from datetime import datetime
-from typing import Optional
+from typing import List, Tuple, Optional
 
 import pandas as pd
 from src.db.clickhouse.base_clickhouse import client
@@ -75,3 +75,19 @@ def get_close_price(
     if df.empty:
         return None
     return df
+
+
+def get_stock_price_datasets() -> List[Tuple[str, str, str, str, int]]:
+    sql = """
+    SELECT
+        ticker,
+        exchange,
+        toString(min(Date)) AS start_date,
+        toString(max(Date)) AS end_date,
+        count() AS count
+    FROM stock_prices
+    GROUP BY ticker, exchange
+    ORDER BY ticker, exchange
+    """
+    df = client.query_df(sql)
+    return list(df.itertuples(index=False, name=None))  # ← 回傳 List[Tuple]
