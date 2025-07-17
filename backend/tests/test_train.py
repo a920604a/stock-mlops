@@ -8,7 +8,7 @@ import pytest
 from backend.src.model_training.train import (
     log_model_to_mlflow,
     prepare_features,
-    train_and_register,
+    train_model,
     train_model,
 )
 from src.train_config import TrainConfig
@@ -154,7 +154,7 @@ def test_train_and_register(mock_log_mlflow, mock_load_data, sample_df):
         ).date(),
     )
 
-    rmse = train_and_register("AAPL", "US", config)
+    rmse = train_model("AAPL", "US", config)
     # 回傳 rmse 是浮點數且 >= 0
     assert isinstance(rmse, float) and rmse >= 0
     mock_load_data.assert_called_once()

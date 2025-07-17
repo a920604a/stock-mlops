@@ -67,6 +67,7 @@ export default function ModelRegisterForm({ showToast }) {
 
       const payload = {
         ticker,
+        exchange,
         model_type: modelType,
         features: featureColumns,
         train_start_date: startDate,

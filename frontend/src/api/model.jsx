@@ -1,5 +1,6 @@
 // frontend/src/api/models.js
 import axios from 'axios';
+import { CodeSquare } from 'lucide-react';
 
 // 後端 FastAPI 的基礎 URL
 // 根據您的環境，這可能是 'http://localhost:8000' 或 'http://backend:8001'
@@ -88,3 +89,28 @@ export const fetchTrainStatus = async (taskId) => {
     const response = await axios.get(`${BASE_URL}/train/status/${taskId}`)
     return response.data
 }
+
+
+// 新增訓練任務的 API 呼叫
+export const submitTrainJob = async (modelId) => {
+  try {
+    // 假設後端需要接收 modelId，可以改成適合你的結構
+    const response = await axios.post(`${BASE_URL}/train`, { model_id: modelId });
+    return response.data.task_id;  // 從物件取出 task_id 字串或數字
+  } catch (error) {
+    console.error("API 提交訓練任務失敗:", error);
+    throw error;
+  }
+};
+
+
+// 假設預測 API
+export const submitPredictJob = async (modelId) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/predict/${modelId}`);
+    return response.data; // 假設回傳類似 { task_id: "yyy" }
+  } catch (error) {
+    console.error("API 提交預測任務失敗:", error);
+    throw error;
+  }
+};

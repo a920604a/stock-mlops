@@ -1,15 +1,13 @@
 import React, { useEffect, useState , useRef} from 'react';
-import { getModels, deleteModelById } from '../api/model';
+import { getModels, deleteModelById, submitTrainJob, submitPredictJob  } from '../api/model';
 import {
   Box, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
   Spinner, Alert, AlertIcon, IconButton, Text, Flex,
-  AlertDialog, AlertDialogOverlay, AlertDialogContent,
-  AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
-  useDisclosure, Button
+  useDisclosure
 } from '@chakra-ui/react';
 import { DeleteIcon, ViewIcon,  SearchIcon } from '@chakra-ui/icons';
 import { Zap, TrendingUp, Play } from 'lucide-react'; // 預測趨勢
-
+import DeleteConfirmDialog from './DeleteConfirmDialog';
 import ModelDetailModal from './ModelDetailModal';
 
 export default function ModelList({ showToast }) {
@@ -64,14 +62,28 @@ export default function ModelList({ showToast }) {
     }
   };
 
-  const handleTrain = (model) => {
-    showToast && showToast('通知', `已開始訓練模型 ID: ${model.id}`, 'info');
+  const handleTrain = async (model) => {
+    try {
+      showToast && showToast('通知', `開始提交訓練任務，模型 ID: ${model.id}`, 'info');
+      const taskId = await submitTrainJob(model.id); // 直接拿字串
+      console.log('taskId ', taskId)
+      // setTrainTaskId(taskId);
+      showToast && showToast('成功', `訓練任務已建立，Task ID: ${taskId}`, 'success');
+    } catch (error) {
+      showToast && showToast('錯誤', `提交訓練任務失敗: ${error.message}`, 'error');
+    }
   };
 
-  const handlePredict = (model) => {
-    showToast && showToast('通知', `已開始模型預測 ID: ${model.id}`, 'info');
+  const handlePredict = async(model) => {
+     try {
+      showToast && showToast('通知', `開始提交預測任務，模型 ID: ${model.id}`, 'info');
+      const data = await submitPredictJob(model.id);
+      showToast && showToast('成功', `預測任務已建立，Task ID: ${data.task_id}`, 'success');
+      // 同理可做狀態輪詢或跳轉
+    } catch (error) {
+      showToast && showToast('錯誤', `提交預測任務失敗: ${error.message}`, 'error');
+    }
   };
-
   if (loading) {
     return (
       <Flex justify="center" align="center" height="200px">
@@ -92,7 +104,7 @@ export default function ModelList({ showToast }) {
 
   return (
     <Box>
-      <Text fontSize="xl" mb={4} fontWeight="bold" color="teal.700">已訓練模型列表</Text>
+      <Text fontSize="xl" mb={4} fontWeight="bold" color="teal.700">模型列表</Text>
       {models.length === 0 ? (
         <Text>目前沒有已訓練的模型。</Text>
       ) : (
@@ -169,32 +181,12 @@ export default function ModelList({ showToast }) {
         onClose={onClose}
         model={selectedModel}
       />
-    <AlertDialog
-      isOpen={isDeleteOpen}
-      leastDestructiveRef={cancelRef}
-      onClose={onDeleteClose}
-    >
-      <AlertDialogOverlay>
-        <AlertDialogContent>
-          <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            刪除模型
-          </AlertDialogHeader>
-
-          <AlertDialogBody>
-            確定要刪除模型 ID: {modelToDelete?.id} 嗎？此操作無法復原。
-          </AlertDialogBody>
-
-          <AlertDialogFooter>
-            <Button ref={cancelRef} onClick={onDeleteClose}>
-              取消
-            </Button>
-            <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-              確定刪除
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialogOverlay>
-    </AlertDialog>
+      <DeleteConfirmDialog
+        isOpen={isDeleteOpen}
+        onClose={onDeleteClose}
+        onConfirm={confirmDelete}
+        itemName={`模型 ID: ${modelToDelete?.id}`}
+      />
 
     </Box>
   );

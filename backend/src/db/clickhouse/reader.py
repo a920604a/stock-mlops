@@ -3,6 +3,10 @@ from typing import List, Tuple, Optional
 import pandas as pd
 from src.db.clickhouse.connection_pool import clickhouse_pool
 
+import logging
+
+logger = logging.getLogger(__name__)  # 建立 logger
+
 
 def query_df(client, query: str) -> pd.DataFrame:
     data, columns = client.execute(query, with_column_types=True)
@@ -16,6 +20,7 @@ def load_stock_data(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
 ) -> pd.DataFrame:
+    logger.info("load_stock_data")
     base_query = f"""
     SELECT *
     FROM stock_prices

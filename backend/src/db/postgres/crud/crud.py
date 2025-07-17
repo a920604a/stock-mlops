@@ -1,12 +1,14 @@
-# backend/src/crud.py
+# backend/src/db/postgres/crud.py
 from typing import List, Optional
 from src.db.postgres.base_postgres import db_session
 
 from api.schemas.model_request import (
     ModelMetadataCreate,
     ModelMetadataUpdate,
+    ModelMetadataResponse,
+    ModelMetadataSchema,
 )
-from api.routes.models import ModelMetadataResponse
+
 from datetime import datetime
 from uuid import uuid4
 
@@ -15,9 +17,12 @@ from src.db.postgres.models.models import ModelMetadata  # ORM 類別
 # --- CRUD Operations for ModelMetadata ---
 
 
-def get_model(model_id: int) -> Optional[ModelMetadata]:
+def get_model(model_id: int) -> Optional[ModelMetadataSchema]:
     with db_session() as db:
-        return db.query(ModelMetadata).filter(ModelMetadata.id == model_id).first()
+        db_model = db.query(ModelMetadata).filter(ModelMetadata.id == model_id).first()
+        if db_model:
+            return ModelMetadataSchema.from_orm(db_model)
+        return None
 
 
 def get_models(skip: int = 0, limit: int = 100) -> List[dict]:
@@ -29,6 +34,7 @@ def get_models(skip: int = 0, limit: int = 100) -> List[dict]:
                 {
                     "id": m.id,
                     "ticker": m.ticker,
+                    "exchange": m.exchange,
                     "run_id": m.run_id,
                     "model_uri": m.model_uri,
                     "shuffle": m.shuffle,
@@ -46,6 +52,7 @@ def create_model(model: ModelMetadataCreate) -> ModelMetadata:
     with db_session() as db:
         db_model = ModelMetadata(
             ticker=model.ticker,
+            exchange=model.exchange,
             model_type=model.model_type,
             features=model.features,
             train_start_date=model.train_start_date,

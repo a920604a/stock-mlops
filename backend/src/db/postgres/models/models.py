@@ -9,6 +9,7 @@ class ModelMetadata(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     ticker = Column(String(50), nullable=False)
+    exchange = Column(String(50), nullable=False)
     run_id = Column(String(100), nullable=False)
     model_uri = Column(Text, nullable=False)
     shuffle = Column(Boolean)

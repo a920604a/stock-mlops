@@ -9,8 +9,12 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from src.db.clickhouse.reader import load_stock_data
-from src.db.postgres.crud.model_save import save_model_metadata
+from src.db.postgres.crud.model_save import save_or_update_model_metadata
 from src.train_config import TrainConfig
+
+import logging
+
+logger = logging.getLogger(__name__)  # 建立 logger
 
 
 def prepare_features(df: pd.DataFrame, features: List[str]):
@@ -48,7 +52,7 @@ def train_model(X, y, config: TrainConfig):
     return model, rmse
 
 
-def log_model_to_mlflow(model, ticker, config: TrainConfig):
+def log_model_to_mlflow(model, model_id, ticker, exchange, config: TrainConfig):
     mlflow.set_tracking_uri("http://mlflow:5000")
     mlflow.set_experiment("stock_price_prediction")
 
@@ -60,8 +64,11 @@ def log_model_to_mlflow(model, ticker, config: TrainConfig):
         model_uri = f"runs:/{run.info.run_id}/model"
         mlflow.register_model(model_uri, "stock_price_prediction")
 
-        save_model_metadata(
+        #  TODO: update model not save
+        save_or_update_model_metadata(
+            id=model_id,
             ticker=ticker,
+            exchange=exchange,
             run_id=run.info.run_id,
             model_uri=model_uri,
             features=config.feature_columns,
@@ -75,7 +82,9 @@ def log_model_to_mlflow(model, ticker, config: TrainConfig):
     return run.info.run_id
 
 
-def train_and_register(ticker: str, exchange: str, config: TrainConfig):
+def train_ml_model(model_id: int, ticker: str, exchange: str, config: TrainConfig):
+    logger.info(f"ticker: {ticker}, exchange: {exchange}, config {config}")
+
     df = load_stock_data(
         ticker, exchange, config.train_start_date, config.train_end_date
     )
@@ -83,7 +92,7 @@ def train_and_register(ticker: str, exchange: str, config: TrainConfig):
     train_start_date = df["Date"].iloc[0]
     train_end_date = df["Date"].iloc[-1]
     model, rmse = train_model(X, y, config)
-    run_id = log_model_to_mlflow(model, ticker, config)
+    run_id = log_model_to_mlflow(model, model_id, ticker, exchange, config)
 
     print(f"訓練完成，RMSE：{rmse:.4f}")
     print(f"訓練資料區間：{train_start_date} ~ {train_end_date}")
@@ -112,4 +121,4 @@ if __name__ == "__main__":
         ).date(),
     )
 
-    train_and_register("AAPL", "US", config)
+    train_ml_model(0, "AAPL", "US", config)
