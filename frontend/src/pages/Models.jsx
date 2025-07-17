@@ -4,10 +4,9 @@ import {
     Box, Tabs, TabList, TabPanels, Tab, TabPanel,
     Heading, useToast
 } from '@chakra-ui/react';
+import ModelRegisterForm from '../components/ModelRegisterForm'
 import ModelList from '../components/ModelList';
-import PredictForm from '../components/PredictForm';
-import TrainForm from '../components/TrainForm';
-
+import TrainStatus from '../components/TrainStatus'
 export default function ModelsPage() {
     const toast = useToast();
 
@@ -25,25 +24,26 @@ export default function ModelsPage() {
 
     return (
         <Box p={6} maxW="1200px" mx="auto">
-            <Heading size="lg" mb={6} textAlign="center" color="teal.600">📦 模型管理中心</Heading>
-            <Tabs isFitted variant="enclosed" colorScheme="teal" rounded="lg" overflow="hidden" shadow="md">
-                <TabList mb="1em" bg="teal.500" color="white" borderBottom="none">
-                    <Tab _selected={{ bg: "teal.700", color: "white" }} _hover={{ bg: "teal.600" }} py={3} fontWeight="bold" fontSize="lg" roundedTop="lg">已訓練模型</Tab>
-                    <Tab _selected={{ bg: "teal.700", color: "white" }} _hover={{ bg: "teal.600" }} py={3} fontWeight="bold" fontSize="lg" roundedTop="lg">模型訓練</Tab>
-                    <Tab _selected={{ bg: "teal.700", color: "white" }} _hover={{ bg: "teal.600" }} py={3} fontWeight="bold" fontSize="lg" roundedTop="lg">模型預測</Tab>
+            <Heading size="lg" mb={6} textAlign="TrainStatuscenter" color="teal.600">📦 模型管理中心</Heading>
+            <Tabs variant="enclosed" colorScheme="teal" isFitted>
+                <TabList>
+                    <Tab>模型註冊</Tab>
+                    <Tab>模型清單</Tab>
+                    <Tab>訓練狀態</Tab>
                 </TabList>
-                <TabPanels bg="white" p={6} roundedBottom="lg" shadow="inner">
+                <TabPanels>
                     <TabPanel>
-                        <ModelList showToast={showToast} />
+                    <ModelRegisterForm showToast={showToast} />
                     </TabPanel>
                     <TabPanel>
-                        <TrainForm showToast={showToast} />
+                    <ModelList showToast={showToast} />
                     </TabPanel>
                     <TabPanel>
-                        <PredictForm showToast={showToast} />
+                    <TrainStatus showToast={showToast} />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
+
         </Box>
     );
 }

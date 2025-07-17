@@ -81,3 +81,9 @@ export const getModelDetails = async (modelId) => {
         throw error;
     }
 };
+
+
+export const fetchTrainStatus = async (taskId) => {
+    const response = await axios.get(`${BASE_URL}/train/status/${taskId}`)
+    return response.data
+}

@@ -1,20 +1,21 @@
+// src/components/TrainStatus.jsx
 import { useState } from 'react'
-import axios from 'axios'
 import {
-    Box, Heading, Input, Button, VStack, Alert, AlertIcon, Text,
+    Box, Heading, Input, Button, VStack, Alert, AlertIcon,
 } from '@chakra-ui/react'
+import { fetchTrainStatus } from '../api/model'
 
 export default function TrainStatus() {
     const [taskId, setTaskId] = useState('')
     const [status, setStatus] = useState(null)
     const [error, setError] = useState(null)
 
-    const fetchStatus = async () => {
+    const handleFetchStatus = async () => {
         setError(null)
         setStatus(null)
         try {
-            const res = await axios.get(`http://localhost:8001/api/train/status/${taskId}`)
-            setStatus(res.data)
+            const data = await fetchTrainStatus(taskId)
+            setStatus(data)
         } catch (err) {
             setError(err.response?.data?.detail || '查詢失敗')
         }
@@ -30,7 +31,7 @@ export default function TrainStatus() {
                     value={taskId}
                     onChange={e => setTaskId(e.target.value)}
                 />
-                <Button colorScheme="teal" onClick={fetchStatus}>查詢狀態</Button>
+                <Button colorScheme="teal" onClick={handleFetchStatus}>查詢狀態</Button>
             </VStack>
 
             {error && (
@@ -41,7 +42,7 @@ export default function TrainStatus() {
             )}
 
             {status && (
-                <Box bg="gray.100" p={4} borderRadius="md">
+                <Box bg="gray.100" p={4} borderRadius="md" whiteSpace="pre-wrap">
                     <pre>{JSON.stringify(status, null, 2)}</pre>
                 </Box>
             )}
