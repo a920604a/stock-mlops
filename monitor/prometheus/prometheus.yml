@@ -12,7 +12,7 @@ scrape_configs:
 
   - job_name: 'celery'
     static_configs:
-      - targets: ['celery:8000'] # 若有暴露 Prometheus metrics
+      - targets: ['celery_exporter:9540'] # 若有暴露 Prometheus metrics
 
   - job_name: 'monitor'
     static_configs:

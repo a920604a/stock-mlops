@@ -20,3 +20,4 @@ celery
 prometheus-fastapi-instrumentator
 prometheus_client
 clickhouse_driver
+celery-prometheus

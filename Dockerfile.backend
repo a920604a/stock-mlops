@@ -24,5 +24,7 @@ COPY requirements.txt ./
 # 安裝 Python 套件
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+RUN mkdir -p /tmp/celery_metrics && chmod 777 /tmp/celery_metrics
+
 # 預設啟動 FastAPI 伺服器
 CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
