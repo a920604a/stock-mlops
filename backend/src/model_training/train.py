@@ -94,7 +94,7 @@ def train_ml_model(model_id: int, ticker: str, exchange: str, config: TrainConfi
     model, rmse = train_model(X, y, config)
     run_id = log_model_to_mlflow(model, model_id, ticker, exchange, config)
 
-    print(f"訓練完成，RMSE：{rmse:.4f}")
+    print(f"訓練完成，RMSE：{rmse:.4f} with run id {run_id}")
     print(f"訓練資料區間：{train_start_date} ~ {train_end_date}")
     return rmse, run_id
 

@@ -25,7 +25,10 @@ def save_or_update_model_metadata(
             metadata = session.query(ModelMetadata).filter_by(id=id).first()
 
             if metadata:
-                # 更新現有紀錄
+                # 更新現有紀錄,only save the latest training model
+                # metadata.ticker = ticker
+                # metadata.exchange = exchange
+                metadata.run_id = run_id
                 metadata.model_uri = model_uri
                 metadata.features = features
                 metadata.model_type = model_type

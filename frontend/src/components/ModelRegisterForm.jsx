@@ -81,12 +81,12 @@ export default function ModelRegisterForm({ showToast }) {
       showToast && showToast('成功', '模型註冊成功', 'success')
 
       // 清空欄位
-      // setTicker('')
-      // setExchange('US')
-      // setModelType('random_forest')
-      // setFeatureColumns([])
-      // setStartDate('')
-      // setEndDate('')
+      setTicker('')
+      setExchange('US')
+      setModelType('random_forest')
+      setFeatureColumns([])
+      setStartDate('')
+      setEndDate('')
     } catch (err) {
       setError('模型註冊失敗')
       showToast && showToast('錯誤', '模型註冊失敗', 'error')
