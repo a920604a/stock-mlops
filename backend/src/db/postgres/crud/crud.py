@@ -6,6 +6,9 @@ from api.schemas.model_request import (
     ModelMetadataCreate,
     ModelMetadataUpdate,
 )
+from api.routes.models import ModelMetadataResponse
+from datetime import datetime
+from uuid import uuid4
 
 from src.db.postgres.models.models import ModelMetadata  # ORM 類別
 
@@ -41,11 +44,24 @@ def get_models(skip: int = 0, limit: int = 100) -> List[dict]:
 
 def create_model(model: ModelMetadataCreate) -> ModelMetadata:
     with db_session() as db:
-        db_model = ModelMetadata(**model.model_dump())  # Pydantic v2+
+        db_model = ModelMetadata(
+            ticker=model.ticker,
+            model_type=model.model_type,
+            features=model.features,
+            train_start_date=model.train_start_date,
+            train_end_date=model.train_end_date,
+            shuffle=model.shuffle,
+            # run_id=f"model_run_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid4().hex[:6]}",
+            # model_uri="",  # 可先留空或預設為空字串，等訓練完成補上
+            run_id="",  # 或空字串 ""
+            model_uri="",  # 訓練完成後再補上
+        )
+        # db_model = ModelMetadata(**model.model_dump())  # Pydantic v2+
         db.add(db_model)
         db.flush()  # 先寫入DB取得 id 等自動生成欄位
         db.refresh(db_model)
-        return db_model
+        # ✅ 在 session 關閉前就轉換
+        return ModelMetadataResponse.from_orm(db_model)
 
 
 def update_model(

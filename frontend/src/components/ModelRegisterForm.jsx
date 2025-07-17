@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import {
   Box, Heading, Input, Button, VStack, Alert, AlertIcon, Text, Checkbox, CheckboxGroup, Stack,
-  FormControl, FormLabel, Select
+  FormControl, FormLabel, Select, Checkbox as ChakraCheckbox
 } from '@chakra-ui/react'
+import { createModel } from '../api/model' // 根據你的實際檔案路徑調整
+
 
 export default function ModelRegisterForm({ showToast }) {
   const [ticker, setTicker] = useState('')
@@ -11,15 +13,20 @@ export default function ModelRegisterForm({ showToast }) {
   // config states
   const [modelType, setModelType] = useState('random_forest')
   const [featureColumns, setFeatureColumns] = useState([]) // array of strings
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+    const [shuffle, setShuffle] = useState(true)  // 新增 shuffle state，預設 true
+
 
   const [status, setStatus] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // 常見特徵欄位範例，讓使用者可以選擇
-  const allFeatures = [
-    'MA5', 'MA10', 'EMA12', 'EMA26', 'MACD', 'RSI', 'Volume'
-  ]
+  // 常見特徵欄位範例
+  const allFeatures = ['MA5', 'MA10', 'EMA12', 'EMA26', 'MACD', 'RSI', 'Volume']
+
+  // 取得今天日期(yyyy-MM-dd)
+  const today = new Date().toISOString().split('T')[0]
 
   const handleFeatureChange = (values) => {
     setFeatureColumns(values)
@@ -40,23 +47,45 @@ export default function ModelRegisterForm({ showToast }) {
       setLoading(false)
       return
     }
+    if (!startDate || !endDate) {
+      setError('請選擇訓練起始及結束日期')
+      setLoading(false)
+      return
+    }
+    if (new Date(startDate) > new Date(endDate)) {
+      setError('訓練起始日期不能晚於結束日期')
+      setLoading(false)
+      return
+    }
+    if (new Date(endDate) > new Date(today)) {
+      setError('訓練結束日期不能晚於今天')
+      setLoading(false)
+      return
+    }
 
     try {
-      // 模擬 API 呼叫，2 秒後回傳成功
-      await new Promise(resolve => setTimeout(resolve, 2000))
 
-      // 假設後端回傳 modelId 與訊息
-      const fakeModelId = Math.floor(Math.random() * 10000)
-      setStatus({ modelId: fakeModelId, message: '模型註冊成功' })
+      const payload = {
+        ticker,
+        model_type: modelType,
+        features: featureColumns,
+        train_start_date: startDate,
+        train_end_date: endDate,
+        shuffle: shuffle,
+      }
+      console.log("payload", payload)
+      const data = await createModel(payload)
+      setStatus({ modelId: data.id, message: '模型註冊成功' })
 
       showToast && showToast('成功', '模型註冊成功', 'success')
 
       // 清空欄位
-      setTicker('')
-      setExchange('US')
-      setModelType('random_forest')
-      setFeatureColumns([])
-
+      // setTicker('')
+      // setExchange('US')
+      // setModelType('random_forest')
+      // setFeatureColumns([])
+      // setStartDate('')
+      // setEndDate('')
     } catch (err) {
       setError('模型註冊失敗')
       showToast && showToast('錯誤', '模型註冊失敗', 'error')
@@ -117,6 +146,38 @@ export default function ModelRegisterForm({ showToast }) {
               ))}
             </Stack>
           </CheckboxGroup>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>訓練起始日期</FormLabel>
+          <Input
+            type="date"
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
+            isDisabled={loading}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>訓練結束日期</FormLabel>
+          <Input
+            type="date"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+            isDisabled={loading}
+            max={today}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>是否打亂訓練數據 (Shuffle)</FormLabel>
+          <ChakraCheckbox
+            isChecked={shuffle}
+            onChange={e => setShuffle(e.target.checked)}
+            isDisabled={loading}
+          >
+            打亂數據
+          </ChakraCheckbox>
         </FormControl>
 
         <Button

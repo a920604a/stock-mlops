@@ -43,6 +43,7 @@ export const deleteModelById = async (modelId) => {
  */
 export const createModel = async (modelData) => {
     try {
+        console.log("createModel ", modelData)
         const response = await axios.post(`${BASE_URL}/models/`, modelData);
         return response.data;
     } catch (error) {

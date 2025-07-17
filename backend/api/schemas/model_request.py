@@ -1,7 +1,7 @@
 # backend/src/schemas.py
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 
 # Base schema for ModelMetadata, containing common fields
 class ModelMetadataBase(BaseModel):
@@ -33,9 +33,24 @@ class ModelMetadataBase(BaseModel):
 
 
 # Schema for creating a new ModelMetadata entry
-# Inherits from ModelMetadataBase, no additional fields needed for creation
-class ModelMetadataCreate(ModelMetadataBase):
-    pass
+# 專用於前端註冊模型的輸入 schema
+class ModelMetadataCreate(BaseModel):
+    ticker: str = Field(..., example="AAPL", description="股票代號")
+    model_type: Optional[str] = Field(None, example="random_forest", description="模型類型")
+    features: List[str] = Field(
+        ..., example=["open", "high", "low", "close"], description="訓練使用的特徵列表"
+    )
+    train_start_date: Optional[date]
+    train_end_date: Optional[date]
+    shuffle: Optional[bool] = Field(None, example=True, description="是否打亂訓練資料順序")
+
+    class Config:
+        from_attributes = True
+
+
+class ModelCreateResponse(BaseModel):
+    id: int
+    message: str
 
 
 # Schema for updating an existing ModelMetadata entry
