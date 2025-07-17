@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // 後端 FastAPI 的基礎 URL
 // 根據您的環境，這可能是 'http://localhost:8000' 或 'http://backend:8001'
-const API_BASE_URL = 'http://backend:8001';
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8001/api";
 
 /**
  * 從後端獲取所有模型元數據。
@@ -12,7 +12,7 @@ const API_BASE_URL = 'http://backend:8001';
 export const getModels = async () => {
     try {
         // 更新 API 路徑為 /api/models/
-        const response = await axios.get(`${API_BASE_URL}/api/models/`);
+        const response = await axios.get(`${BASE_URL}/models/`);
         return response.data;
     } catch (error) {
         console.error("API 獲取模型列表失敗:", error);
@@ -28,7 +28,7 @@ export const getModels = async () => {
 export const deleteModelById = async (modelId) => {
     try {
         // 更新 API 路徑為 /api/models/{id}
-        const response = await axios.delete(`${API_BASE_URL}/api/models/${modelId}`);
+        const response = await axios.delete(`${BASE_URL}/models/${modelId}`);
         return response.data;
     } catch (error) {
         console.error(`API 刪除模型 ID: ${modelId} 失敗:`, error);
@@ -43,7 +43,7 @@ export const deleteModelById = async (modelId) => {
  */
 export const createModel = async (modelData) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/api/models/`, modelData);
+        const response = await axios.post(`${BASE_URL}/models/`, modelData);
         return response.data;
     } catch (error) {
         console.error("API 創建模型失敗:", error);
@@ -59,7 +59,7 @@ export const createModel = async (modelData) => {
  */
 export const updateModel = async (modelId, updateData) => {
     try {
-        const response = await axios.put(`${API_BASE_URL}/api/models/${modelId}`, updateData);
+        const response = await axios.put(`${BASE_URL}/models/${modelId}`, updateData);
         return response.data;
     } catch (error) {
         console.error(`API 更新模型 ID: ${modelId} 失敗:`, error);
@@ -74,7 +74,7 @@ export const updateModel = async (modelId, updateData) => {
  */
 export const getModelDetails = async (modelId) => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/api/models/${modelId}`);
+        const response = await axios.get(`${BASE_URL}/models/${modelId}`);
         return response.data;
     } catch (error) {
         console.error(`API 獲取模型詳情 ID: ${modelId} 失敗:`, error);

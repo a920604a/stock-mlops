@@ -60,6 +60,17 @@ export default function TrainForm() {
         }
       })
       setStatus({ task_id: res.data.task_id, message: '訓練任務已提交' })
+
+       // 清空欄位
+      setTicker('')
+      setExchange('US')
+      setModelType('random_forest')
+      setFeatureColumns([])
+      setShuffle(false)
+      setNEstimators(100)
+      setTrainStartTime('')
+      setTrainEndTime('')
+
     } catch (err) {
       setError(err.response?.data?.detail || '訓練提交失敗')
     }

@@ -17,7 +17,7 @@
             "title": "API Request Rate (by handler + method)",
             "targets": [
                 {
-                    "expr": "sum by (handler, method) (rate(http_requests_total[1m]))",
+                    "expr": "sum by (handler, method) (increase(http_requests_total[1m]))",
                     "legendFormat": "{{handler}} [{{method}}]",
                     "refId": "A"
                 }

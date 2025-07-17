@@ -72,3 +72,6 @@ class ModelMetadataResponse(ModelMetadataBase):
     created_at: datetime = Field(
         ..., example="2023-10-26T10:00:00Z", description="模型建立時間"
     )
+
+    class Config:
+        orm_mode = True

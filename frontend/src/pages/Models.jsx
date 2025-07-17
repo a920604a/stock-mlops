@@ -29,18 +29,18 @@ export default function ModelsPage() {
             <Tabs isFitted variant="enclosed" colorScheme="teal" rounded="lg" overflow="hidden" shadow="md">
                 <TabList mb="1em" bg="teal.500" color="white" borderBottom="none">
                     <Tab _selected={{ bg: "teal.700", color: "white" }} _hover={{ bg: "teal.600" }} py={3} fontWeight="bold" fontSize="lg" roundedTop="lg">已訓練模型</Tab>
-                    <Tab _selected={{ bg: "teal.700", color: "white" }} _hover={{ bg: "teal.600" }} py={3} fontWeight="bold" fontSize="lg" roundedTop="lg">模型預測</Tab>
                     <Tab _selected={{ bg: "teal.700", color: "white" }} _hover={{ bg: "teal.600" }} py={3} fontWeight="bold" fontSize="lg" roundedTop="lg">模型訓練</Tab>
+                    <Tab _selected={{ bg: "teal.700", color: "white" }} _hover={{ bg: "teal.600" }} py={3} fontWeight="bold" fontSize="lg" roundedTop="lg">模型預測</Tab>
                 </TabList>
                 <TabPanels bg="white" p={6} roundedBottom="lg" shadow="inner">
                     <TabPanel>
                         <ModelList showToast={showToast} />
                     </TabPanel>
                     <TabPanel>
-                        <PredictForm showToast={showToast} />
+                        <TrainForm showToast={showToast} />
                     </TabPanel>
                     <TabPanel>
-                        <TrainForm showToast={showToast} />
+                        <PredictForm showToast={showToast} />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
