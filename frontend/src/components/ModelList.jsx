@@ -5,7 +5,9 @@ import {
   Spinner, Alert, AlertIcon, IconButton, Text, Flex,
   useDisclosure,
 } from '@chakra-ui/react';
-import { DeleteIcon, ViewIcon, TriangleUpIcon, SearchIcon } from '@chakra-ui/icons';
+import { DeleteIcon, ViewIcon,  SearchIcon } from '@chakra-ui/icons';
+import { Zap, TrendingUp, Play } from 'lucide-react'; // 預測趨勢
+
 import ModelDetailModal from './ModelDetailModal';
 
 export default function ModelList({ showToast }) {
@@ -34,6 +36,7 @@ export default function ModelList({ showToast }) {
   useEffect(() => {
     fetchModels();
   }, []);
+
 
   const handleViewDetails = (model) => {
     setSelectedModel(model);
@@ -111,7 +114,7 @@ export default function ModelList({ showToast }) {
                   <Td>{new Date(model.created_at).toLocaleString()}</Td>
                   <Td>
                     <IconButton
-                      icon={<TriangleUpIcon />}
+                      icon={<Play />}
                       aria-label="訓練模型"
                       size="sm"
                       mr={2}
@@ -121,7 +124,7 @@ export default function ModelList({ showToast }) {
                       onClick={() => handleTrain(model)}
                     />
                     <IconButton
-                      icon={<SearchIcon />}
+                      icon={<Zap />}
                       aria-label="模型預測"
                       size="sm"
                       mr={2}

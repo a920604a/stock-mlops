@@ -25,7 +25,8 @@ export default function ModelsPage() {
     return (
         <Box p={6} maxW="1200px" mx="auto">
             <Heading size="lg" mb={6} textAlign="TrainStatuscenter" color="teal.600">📦 模型管理中心</Heading>
-            <Tabs variant="enclosed" colorScheme="teal" isFitted>
+            <Tabs variant="enclosed" colorScheme="teal" isFitted defaultIndex={1}>
+
                 <TabList>
                     <Tab>模型註冊</Tab>
                     <Tab>模型清單</Tab>
