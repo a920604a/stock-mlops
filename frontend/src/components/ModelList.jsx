@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState , useRef} from 'react';
 import { getModels, deleteModelById } from '../api/model';
 import {
   Box, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
   Spinner, Alert, AlertIcon, IconButton, Text, Flex,
-  useDisclosure,
+  AlertDialog, AlertDialogOverlay, AlertDialogContent,
+  AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
+  useDisclosure, Button
 } from '@chakra-ui/react';
 import { DeleteIcon, ViewIcon,  SearchIcon } from '@chakra-ui/icons';
 import { Zap, TrendingUp, Play } from 'lucide-react'; // 預測趨勢
@@ -11,6 +13,8 @@ import { Zap, TrendingUp, Play } from 'lucide-react'; // 預測趨勢
 import ModelDetailModal from './ModelDetailModal';
 
 export default function ModelList({ showToast }) {
+  const cancelRef = useRef();
+
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -165,9 +169,33 @@ export default function ModelList({ showToast }) {
         onClose={onClose}
         model={selectedModel}
       />
+    <AlertDialog
+      isOpen={isDeleteOpen}
+      leastDestructiveRef={cancelRef}
+      onClose={onDeleteClose}
+    >
+      <AlertDialogOverlay>
+        <AlertDialogContent>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            刪除模型
+          </AlertDialogHeader>
 
-      {/* 刪除確認 Modal 依舊寫在這 */}
-      {/* ...刪除 Modal 程式碼不變... */}
+          <AlertDialogBody>
+            確定要刪除模型 ID: {modelToDelete?.id} 嗎？此操作無法復原。
+          </AlertDialogBody>
+
+          <AlertDialogFooter>
+            <Button ref={cancelRef} onClick={onDeleteClose}>
+              取消
+            </Button>
+            <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+              確定刪除
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogOverlay>
+    </AlertDialog>
+
     </Box>
   );
 }
