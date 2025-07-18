@@ -26,6 +26,7 @@ FEATURE_COLUMNS = [
 class TrainConfig:
     model_type: Literal["xgboost", "random_forest"] = "random_forest"
     feature_columns: List[str] = field(default_factory=lambda: FEATURE_COLUMNS)
+    val_size: float = 0.2
     shuffle: bool = False
     n_estimators: int = 100
     train_start_date: date = None

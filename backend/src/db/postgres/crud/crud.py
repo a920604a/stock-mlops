@@ -25,6 +25,12 @@ def get_model(model_id: int) -> Optional[ModelMetadataSchema]:
         return None
 
 
+def get_all_model_id() -> Optional[List[int]]:
+    with db_session() as db:
+        models = db.query(ModelMetadata).all()  # 回傳 List[ModelMetadata]
+        return [m.id for m in models]  # 用 m.id 安全取值
+
+
 def get_models(skip: int = 0, limit: int = 100) -> List[dict]:
     with db_session() as db:
         models = db.query(ModelMetadata).offset(skip).limit(limit).all()

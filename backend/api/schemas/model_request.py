@@ -10,6 +10,7 @@ class ModelMetadataCreate(BaseModel):
     ticker: str = Field(..., example="AAPL", description="股票代號")
     exchange: str = Field(..., example="US", description="交易所")
     model_type: Optional[str] = Field(None, example="random_forest", description="模型類型")
+    val_size: Optional[float] = Field(None, example=0.2, description="驗證集比例")
     features: List[str] = Field(
         ..., example=["open", "high", "low", "close"], description="訓練使用的特徵列表"
     )
@@ -43,6 +44,7 @@ class ModelMetadataUpdate(BaseModel):
     model_type: Optional[str] = Field(
         None, example="XGBoostClassifier", description="模型類型"
     )
+    val_size: Optional[float] = Field(None, example=0.2, description="驗證集比例")
     shuffle: Optional[bool] = Field(None, example=False, description="訓練時是否打亂數據")
     train_start_date: Optional[datetime] = Field(
         None, example="2021-01-01T00:00:00Z", description="訓練數據開始日期"
@@ -72,6 +74,7 @@ class ModelMetadataResponse(BaseModel):
     model_type: Optional[str] = Field(
         None, example="XGBoostClassifier", description="模型類型"
     )
+    val_size: Optional[float] = Field(None, example=0.2, description="驗證集比例")
     shuffle: Optional[bool] = Field(None, example=False, description="訓練時是否打亂數據")
     train_start_date: Optional[datetime] = Field(
         None, example="2021-01-01T00:00:00Z", description="訓練數據開始日期"
@@ -97,6 +100,7 @@ class ModelMetadataSchema(BaseModel):
     shuffle: Optional[bool]
     features: List[str]
     model_type: str
+    val_size: float
     created_at: datetime
     train_start_date: Optional[datetime]
     train_end_date: Optional[datetime]

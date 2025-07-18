@@ -8,8 +8,9 @@ import pytest
 from backend.src.model_training.train import (
     log_model_to_mlflow,
     prepare_features,
+    train_test_split,
     train_model,
-    train_model,
+    train_ml_model,
 )
 from src.train_config import TrainConfig
 
@@ -77,7 +78,11 @@ def test_train_model(sample_df):
             "2025-01-10 00:00:00", "%Y-%m-%d %H:%M:%S"
         ).date(),
     )
-    model, rmse = train_model(X, y, config)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=config.val_size, shuffle=config.shuffle
+    )
+
+    model, rmse = train_model(X_train, y_train, X_val, y_val, config)
     # 確認模型是 RandomForestRegressor
     from sklearn.ensemble import RandomForestRegressor
 
@@ -154,7 +159,7 @@ def test_train_and_register(mock_log_mlflow, mock_load_data, sample_df):
         ).date(),
     )
 
-    rmse = train_model("AAPL", "US", config)
+    rmse, run_id = train_ml_model(0, "AAPL", "US", config)
     # 回傳 rmse 是浮點數且 >= 0
     assert isinstance(rmse, float) and rmse >= 0
     mock_load_data.assert_called_once()

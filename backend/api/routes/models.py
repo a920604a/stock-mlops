@@ -1,8 +1,11 @@
 # api/routes/models.py
 
 from fastapi import APIRouter, HTTPException, status
-from typing import List
+from typing import List, Dict, Any
+
 import logging
+import mlflow
+from mlflow.entities import Run
 
 from api.schemas.model_request import (
     ModelMetadataCreate,
@@ -16,9 +19,12 @@ from src.db.postgres.crud.crud import (
     create_model,
     update_model,
     delete_model,
+    get_all_model_id,
 )
 
+# router = APIRouter()
 router = APIRouter()
+
 logger = logging.getLogger(__name__)
 
 

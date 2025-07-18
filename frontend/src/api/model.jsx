@@ -21,6 +21,18 @@ export const getModels = async () => {
     }
 };
 
+export const getMLflowModels = async () => {
+    try {
+        // 更新 API 路徑為 /api/models/
+        const response = await axios.get(`${BASE_URL}/mlflow/models`);
+        return response.data;
+    } catch (error) {
+        console.error("API 獲取模型列表失敗:", error);
+        throw error; // 重新拋出錯誤以便調用者處理
+    }
+};
+
+
 /**
  * 根據 ID 刪除一個模型元數據。
  * @param {number} modelId 要刪除的模型 ID。

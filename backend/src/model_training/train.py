@@ -31,19 +31,9 @@ def prepare_features(df: pd.DataFrame, features: List[str]):
     return X, y
 
 
-def train_model(X, y, config: TrainConfig):
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, shuffle=config.shuffle
-    )
+def train_model(X_train, y_train, X_val, y_val, config: TrainConfig):
 
-    if config.model_type == "random_forest":
-        model = RandomForestRegressor(n_estimators=config.n_estimators, random_state=42)
-    elif config.model_type == "xgboost":
-        model = xgb.XGBRegressor(
-            objective="reg:squarederror", n_estimators=config.n_estimators
-        )
-    else:
-        raise ValueError(f"Unsupported model type: {config.model_type}")
+    model = select_model(config)
 
     model.fit(X_train, y_train)
     preds = model.predict(X_val)
@@ -52,13 +42,46 @@ def train_model(X, y, config: TrainConfig):
     return model, rmse
 
 
-def log_model_to_mlflow(model, model_id, ticker, exchange, config: TrainConfig):
+def select_model(config: TrainConfig):
+    if config.model_type == "random_forest":
+        model = RandomForestRegressor(n_estimators=config.n_estimators, random_state=42)
+    elif config.model_type == "xgboost":
+        model = xgb.XGBRegressor(
+            objective="reg:squarederror", n_estimators=config.n_estimators
+        )
+    else:
+        raise ValueError(f"Unsupported model type: {config.model_type}")
+    return model
+
+
+def log_model_to_mlflow(
+    model,
+    model_id: int,
+    ticker: str,
+    exchange: str,
+    config: TrainConfig,
+    X_train,
+    X_val,
+    rmse: float,
+):
+
     mlflow.set_tracking_uri("http://mlflow:5000")
     mlflow.set_experiment("stock_price_prediction")
 
     with mlflow.start_run() as run:
         mlflow.log_param("ticker", ticker)
         mlflow.log_param("features", ",".join(config.feature_columns))
+
+        mlflow.log_param("model_type", config.model_type)
+        mlflow.log_param("n_estimators", config.n_estimators)
+        mlflow.log_param("shuffle", config.shuffle)
+        mlflow.log_param("train_start_date", str(config.train_start_date))
+        mlflow.log_param("train_end_date", str(config.train_end_date))
+
+        mlflow.log_metric("rmse", rmse)
+        mlflow.log_metric("train_size", len(X_train))
+        mlflow.log_metric("val_size", len(X_val))
+
         mlflow.sklearn.log_model(model, "model")
 
         model_uri = f"runs:/{run.info.run_id}/model"
@@ -91,8 +114,15 @@ def train_ml_model(model_id: int, ticker: str, exchange: str, config: TrainConfi
     X, y = prepare_features(df, config.feature_columns)
     train_start_date = df["Date"].iloc[0]
     train_end_date = df["Date"].iloc[-1]
-    model, rmse = train_model(X, y, config)
-    run_id = log_model_to_mlflow(model, model_id, ticker, exchange, config)
+
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=config.val_size, shuffle=config.shuffle
+    )
+    model, rmse = train_model(X_train, y_train, X_val, y_val, config)
+
+    run_id = log_model_to_mlflow(
+        model, model_id, ticker, exchange, config, X_train, X_val, rmse
+    )
 
     print(f"訓練完成，RMSE：{rmse:.4f} with run id {run_id}")
     print(f"訓練資料區間：{train_start_date} ~ {train_end_date}")
@@ -102,6 +132,7 @@ def train_ml_model(model_id: int, ticker: str, exchange: str, config: TrainConfi
 if __name__ == "__main__":
     config = TrainConfig(
         model_type="xgboost",
+        val_size=0.2,
         shuffle=True,
         n_estimators=200,
         feature_columns=[

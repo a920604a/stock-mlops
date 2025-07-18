@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   Box, Heading, Input, Button, VStack, Alert, AlertIcon, Text, Checkbox, CheckboxGroup, Stack,
+  Slider, SliderTrack, SliderFilledTrack, SliderThumb,
   FormControl, FormLabel, Select, Checkbox as ChakraCheckbox
 } from '@chakra-ui/react'
 import { createModel } from '../api/model' // 根據你的實際檔案路徑調整
@@ -15,7 +16,9 @@ export default function ModelRegisterForm({ showToast }) {
   const [featureColumns, setFeatureColumns] = useState([]) // array of strings
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-    const [shuffle, setShuffle] = useState(true)  // 新增 shuffle state，預設 true
+  const [shuffle, setShuffle] = useState(true)  // 新增 shuffle state，預設 true
+  const [validationSplit, setValidationSplit] = useState(0.2) // 預設 0.2
+
 
 
   const [status, setStatus] = useState(null)
@@ -63,6 +66,13 @@ export default function ModelRegisterForm({ showToast }) {
       return
     }
 
+    if (validationSplit < 0 || validationSplit >= 1) {
+      setError('驗證集比例應該在 0 到 1 之間')
+      setLoading(false)
+      return
+    }
+
+
     try {
 
       const payload = {
@@ -73,6 +83,7 @@ export default function ModelRegisterForm({ showToast }) {
         train_start_date: startDate,
         train_end_date: endDate,
         shuffle: shuffle,
+        validation_split: validationSplit,
       }
       console.log("payload", payload)
       const data = await createModel(payload)
@@ -87,6 +98,8 @@ export default function ModelRegisterForm({ showToast }) {
       setFeatureColumns([])
       setStartDate('')
       setEndDate('')
+      setShuffle(0)
+      setValidationSplit(0)
     } catch (err) {
       setError('模型註冊失敗')
       showToast && showToast('錯誤', '模型註冊失敗', 'error')
@@ -132,6 +145,29 @@ export default function ModelRegisterForm({ showToast }) {
             <option value="linear_regression">Linear Regression</option>
           </Select>
         </FormControl>
+
+
+       <FormControl>
+          <FormLabel>驗證集比例 (0 ~ 0.9)</FormLabel>
+          <VStack align="stretch">
+            <Slider
+              value={validationSplit}
+              onChange={(val) => setValidationSplit(parseFloat(val.toFixed(2)))}
+              min={0}
+              max={0.9}
+              step={0.01}
+              isDisabled={loading}
+            >
+              <SliderTrack>
+                <SliderFilledTrack />
+              </SliderTrack>
+              <SliderThumb />
+            </Slider>
+            <Text>目前比例：{validationSplit}</Text>
+          </VStack>
+        </FormControl>
+
+
 
         <FormControl>
           <FormLabel>特徵欄位 (Feature Columns)</FormLabel>

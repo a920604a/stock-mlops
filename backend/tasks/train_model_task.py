@@ -25,6 +25,7 @@ def train_model_task(self, model: dict):
         config = TrainConfig(
             model_type=model["model_type"],
             feature_columns=model["features"],
+            val_size=model.get("val_size"),
             shuffle=model.get("shuffle"),
             n_estimators=100,
             train_end_date=model.get("train_end_date"),
