@@ -7,6 +7,8 @@ import {
 import ModelRegisterForm from '../components/ModelRegisterForm'
 import ModelList from '../components/ModelList';
 import TrainStatus from '../components/TrainStatus'
+import PredictionList from '../components/PredictionList';  // 新增
+
 export default function ModelsPage() {
     const toast = useToast();
 
@@ -31,6 +33,7 @@ export default function ModelsPage() {
                     <Tab>模型註冊</Tab>
                     <Tab>模型清單</Tab>
                     <Tab>訓練狀態</Tab>
+                    <Tab>預測紀錄</Tab>
                 </TabList>
                 <TabPanels>
                     <TabPanel>
@@ -41,6 +44,9 @@ export default function ModelsPage() {
                     </TabPanel>
                     <TabPanel>
                     <TrainStatus showToast={showToast} />
+                    </TabPanel>
+                    <TabPanel>
+                        <PredictionList showToast={showToast} />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

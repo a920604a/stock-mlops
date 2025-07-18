@@ -2,8 +2,14 @@
 
 from fastapi import APIRouter, HTTPException
 from src.inference.predict import Predictor
-from api.schemas.predict_request import PredictRequest, PredictResponse
+from api.schemas.predict_request import (
+    PredictRequest,
+    PredictResponse,
+    PredictionResponse,
+)
 from datetime import datetime
+from typing import List
+from src.db.clickhouse.reader import read_predictions
 
 router = APIRouter()
 
@@ -21,7 +27,7 @@ predict_duration_seconds = Histogram(
 
 
 @router.post("/predict/", response_model=PredictResponse)
-def predict(request: PredictRequest):
+def create_prediction(request: PredictRequest):
     try:
         # 強制把 target_date 轉為 "日期 + 00:00:00" 格式
         target_date_clean = datetime.combine(request.target_date, datetime.min.time())
@@ -46,3 +52,15 @@ def predict(request: PredictRequest):
     except Exception as e:
         predict_failure_total.inc()
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/predict/", response_model=List[PredictionResponse])
+def list_predictions(ticker: str = None):
+
+    df = read_predictions(ticker=ticker)
+    if df.empty:
+        raise HTTPException(status_code=404, detail="找不到預測紀錄")
+
+    # 將 DataFrame 轉成 dict list，FastAPI 會自動轉換成 JSON
+    results = df.to_dict(orient="records")
+    return results

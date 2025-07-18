@@ -106,3 +106,25 @@ def get_stock_price_datasets() -> List[Tuple[str, str, str, str, int]]:
         df = query_df(client, base_query)
 
     return list(df.itertuples(index=False, name=None))
+
+
+def read_predictions(ticker: Optional[str]):
+    # 建立基本的 ClickHouse 查詢語句
+    base_query = """
+        SELECT
+            ticker,
+            predicted_close,
+            predicted_at,
+            target_date,
+            model_metadata_id
+        FROM stock_predictions
+    """
+    # 加條件過濾
+    if ticker:
+        base_query += f" WHERE ticker = '{ticker.upper()}' "
+
+    base_query += " ORDER BY predicted_at DESC "
+
+    with clickhouse_pool as client:
+        df = query_df(client, base_query)
+    return df

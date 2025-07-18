@@ -17,3 +17,15 @@ class PredictResponse(BaseModel):
     actual_close: Optional[float] = None
     predicted_at: datetime
     msg: str
+
+
+# Pydantic schema 定義
+class PredictionResponse(BaseModel):
+    ticker: str
+    predicted_close: float
+    predicted_at: datetime
+    target_date: datetime
+    model_metadata_id: int
+
+    class Config:
+        orm_mode = True

@@ -10,9 +10,7 @@ from src.db.clickhouse.reader import (
     load_stock_data,
 )
 from src.db.clickhouse.base_clickhouse import client  # 你已有的 ClickHouse client
-from src.db.postgres.base_postgres import db_session
 from src.db.postgres.crud.model_available import list_models
-from src.db.postgres.crud.model_save import ModelMetadata
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

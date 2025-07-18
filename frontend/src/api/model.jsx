@@ -1,6 +1,5 @@
 // frontend/src/api/models.js
 import axios from 'axios';
-import { CodeSquare, Target } from 'lucide-react';
 
 // 後端 FastAPI 的基礎 URL
 // 根據您的環境，這可能是 'http://localhost:8000' 或 'http://backend:8001'
