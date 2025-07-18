@@ -6,6 +6,8 @@ from api.routes import train
 from api.routes import etl
 from api.routes import models
 from api.routes import mlflow_model
+from api.routes import monitoring  # 新增引入
+
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -29,3 +31,10 @@ app.include_router(datasets.router, prefix="/api", tags=["datasets"])
 app.include_router(etl.router, prefix="/api", tags=["datasets"])
 app.include_router(models.router, prefix="/api", tags=["model"])
 app.include_router(mlflow_model.router, prefix="/api", tags=["model"])
+
+app.include_router(monitoring.router)  # 加入 WebSocket router
+
+
+@app.on_event("startup")
+async def startup_event():
+    monitoring.start_kafka_consumer()

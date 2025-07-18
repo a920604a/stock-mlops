@@ -74,7 +74,7 @@ predict: ## 執行模型推論
 	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/inference/predict.py
 
 monitor: ## 啟動監控模組
-	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python -m monitor.monitor
+	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python monitor/run.py --ticker AAPL --exchange US --start-date 2025-05-01 --days 30
 
 # ========== 測試與品質檢查 ==========
 
