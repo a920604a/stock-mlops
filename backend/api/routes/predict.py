@@ -20,7 +20,7 @@ predict_duration_seconds = Histogram(
 )
 
 
-@router.post("/predict", response_model=PredictResponse)
+@router.post("/predict/", response_model=PredictResponse)
 def predict(request: PredictRequest):
     try:
         # 強制把 target_date 轉為 "日期 + 00:00:00" 格式

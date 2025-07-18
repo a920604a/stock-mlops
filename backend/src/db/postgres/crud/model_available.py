@@ -1,11 +1,12 @@
 from typing import List, Optional
 from src.db.postgres.base_postgres import db_session  # 使用 context manager
 from src.db.postgres.crud.model_save import ModelMetadata
+from api.schemas.model_request import ModelMetadataSchema
 
 
-def list_models(ticker: Optional[str] = None) -> List[ModelMetadata]:
-    with db_session() as session:
-        query = session.query(ModelMetadata)
+def list_models(ticker: Optional[str] = None) -> List[ModelMetadataSchema]:
+    with db_session() as db:
+        query = db.query(ModelMetadata)
 
         if ticker:
             query = query.filter(ModelMetadata.ticker == ticker.upper())
@@ -34,4 +35,4 @@ def list_models(ticker: Optional[str] = None) -> List[ModelMetadata]:
                 f"trained_at={meta.train_start_date.date()} ~ {meta.train_end_date.date()}"
             )
 
-        return results
+        return [ModelMetadataSchema.from_orm(m) for m in results]

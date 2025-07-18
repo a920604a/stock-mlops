@@ -1,5 +1,5 @@
 import React, { useEffect, useState , useRef} from 'react';
-import { getModels, getMLflowModels, deleteModelById, submitTrainJob, submitPredictJob  } from '../api/model';
+import { getModels, getMLflowModels, deleteModelById  } from '../api/model';
 import {
   Box, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
   Spinner, Alert, AlertIcon, IconButton, Text, Flex,
@@ -10,6 +10,9 @@ import { DeleteIcon, ViewIcon,  SearchIcon } from '@chakra-ui/icons';
 import { Zap, TrendingUp, Play } from 'lucide-react'; // 預測趨勢
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import ModelDetailModal from './ModelDetailModal';
+import { trainModel, predictModel } from './ModelActions';
+import PredictDateModal from './PredictDateModal';
+
 
 export default function ModelList({ showToast }) {
   const cancelRef = useRef();
@@ -24,6 +27,10 @@ export default function ModelList({ showToast }) {
   const toggleColumn = (col) => {
     setShowColumns((prev) => ({ ...prev, [col]: !prev[col] }));
   };
+
+  const [isPredictModalOpen, setPredictModalOpen] = useState(false);
+  const [modelToPredict, setModelToPredict] = useState(null);
+
 
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,26 +83,16 @@ export default function ModelList({ showToast }) {
   };
 
   const handleTrain = async (model) => {
-    try {
-      showToast && showToast('通知', `開始提交訓練任務，模型 ID: ${model.id}`, 'info');
-      const taskId = await submitTrainJob(model.id); // 直接拿字串
-      console.log('taskId ', taskId)
-      // setTrainTaskId(taskId);
-      showToast && showToast('成功', `訓練任務已建立，Task ID: ${taskId}`, 'success');
-    } catch (error) {
-      showToast && showToast('錯誤', `提交訓練任務失敗: ${error.message}`, 'error');
-    }
+    await trainModel(model, showToast);
   };
 
-  const handlePredict = async(model) => {
-     try {
-      showToast && showToast('通知', `開始提交預測任務，模型 ID: ${model.id}`, 'info');
-      const data = await submitPredictJob(model.id);
-      showToast && showToast('成功', `預測任務已建立，Task ID: ${data.task_id}`, 'success');
-      // 同理可做狀態輪詢或跳轉
-    } catch (error) {
-      showToast && showToast('錯誤', `提交預測任務失敗: ${error.message}`, 'error');
-    }
+  const openPredictModal = (model) => {
+    setModelToPredict(model);
+    setPredictModalOpen(true);
+  };
+  const handlePredictSubmit = async(model, target_date) => {
+
+    await predictModel(model, target_date, showToast);
   };
   if (loading) {
     return (
@@ -233,7 +230,7 @@ export default function ModelList({ showToast }) {
                         colorScheme="purple"
                         variant="outline"
                         rounded="full"
-                        onClick={() => handlePredict(model)}
+                        onClick={() => openPredictModal(model)}
                       />
                       <IconButton
                         icon={<ViewIcon />}
@@ -269,6 +266,13 @@ export default function ModelList({ showToast }) {
         onClose={onClose}
         model={selectedModel}
       />
+      <PredictDateModal
+        isOpen={isPredictModalOpen}
+        onClose={() => setPredictModalOpen(false)}
+        model={modelToPredict}
+        onSubmit={handlePredictSubmit}
+      />
+
       <DeleteConfirmDialog
         isOpen={isDeleteOpen}
         onClose={onDeleteClose}

@@ -54,7 +54,7 @@ def get_models(skip: int = 0, limit: int = 100) -> List[dict]:
         return results
 
 
-def create_model(model: ModelMetadataCreate) -> ModelMetadata:
+def create_model(model: ModelMetadataCreate) -> ModelMetadataResponse:
     with db_session() as db:
         db_model = ModelMetadata(
             ticker=model.ticker,

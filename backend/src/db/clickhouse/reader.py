@@ -68,7 +68,7 @@ def get_close_price(
     target_date: datetime, ticker: str, exchange: str
 ) -> Optional[float]:
     date_str = target_date.strftime("%Y-%m-%d")
-    query = f"""
+    base_query = f"""
         SELECT Close FROM stock_prices
         WHERE ticker = '{ticker}'
           AND exchange = '{exchange}'

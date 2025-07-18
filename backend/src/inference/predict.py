@@ -20,18 +20,19 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
+from src.db.clickhouse.schema.create_clickhouse_table import create_clickhouse_table
+
 
 class Predictor:
     def __init__(self, ticker: str, exchange: str):
         self.ticker = ticker
         self.exchange = exchange
+        create_clickhouse_table()
 
-        # 使用 context manager 取得 session
-        with db_session() as session:
-            model_list = list_models(ticker)
-            if not model_list:
-                raise ValueError(f"🚫 找不到 ticker={ticker} 的任何訓練模型，請先訓練")
-            self.model_meta = model_list[0]  # 預設用最新一筆
+        model_list = list_models(ticker)
+        if not model_list:
+            raise ValueError(f"🚫 找不到 ticker={ticker} 的任何訓練模型，請先訓練")
+        self.model_meta = model_list[0]  # 預設用最新一筆
 
         logger.info(
             f"✅ 使用模型: ticker={self.model_meta.ticker}, features={self.model_meta.features}, model_type={self.model_meta.model_type}"
@@ -128,9 +129,6 @@ class Predictor:
 
 
 if __name__ == "__main__":
-    from src.db.clickhouse.schema.create_clickhouse_table import create_clickhouse_table
-
-    create_clickhouse_table()
 
     predictor = Predictor("AAPL", "US")
     pred_price, actual_close, msg = predictor.predict_next_close("2025-07-03 00:00:00")

@@ -1,4 +1,4 @@
-# backend/src/schemas.py
+# backend/api/schemas/model_request.py
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime, date

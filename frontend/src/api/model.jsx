@@ -1,6 +1,6 @@
 // frontend/src/api/models.js
 import axios from 'axios';
-import { CodeSquare } from 'lucide-react';
+import { CodeSquare, Target } from 'lucide-react';
 
 // 後端 FastAPI 的基礎 URL
 // 根據您的環境，這可能是 'http://localhost:8000' 或 'http://backend:8001'
@@ -117,10 +117,11 @@ export const submitTrainJob = async (modelId) => {
 
 
 // 假設預測 API
-export const submitPredictJob = async (modelId) => {
+export const submitPredictJob = async (ticker, exchange, target_date) => {
   try {
-    const response = await axios.post(`${BASE_URL}/predict/${modelId}`);
-    return response.data; // 假設回傳類似 { task_id: "yyy" }
+    const response = await axios.post(`${BASE_URL}/predict/`, {ticker: ticker, exchange: exchange, target_date: target_date});
+    console.log('response', response.data)
+    return response.data;
   } catch (error) {
     console.error("API 提交預測任務失敗:", error);
     throw error;
