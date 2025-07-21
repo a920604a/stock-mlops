@@ -10,13 +10,8 @@ class PredictRequest(BaseModel):
 
 
 class PredictResponse(BaseModel):
-    ticker: str
-    exchange: str
-    target_date: date
-    predicted_close: float
-    actual_close: Optional[float] = None
-    predicted_at: datetime
-    msg: str
+    status: str
+    message: str
 
 
 # Pydantic schema 定義

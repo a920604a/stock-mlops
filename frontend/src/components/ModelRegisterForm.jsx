@@ -66,6 +66,13 @@ export default function ModelRegisterForm({ showToast }) {
       return
     }
 
+    if (new Date(endDate) < new Date(startDate)) {
+      setError('訓練結束日期不能早於起始日期')
+      setLoading(false)
+      return
+    }
+
+
     if (validationSplit < 0 || validationSplit >= 1) {
       setError('驗證集比例應該在 0 到 1 之間')
       setLoading(false)

@@ -3,7 +3,7 @@ import { getModels, getMLflowModels, deleteModelById  } from '../api/model';
 import {
   Box, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
   Spinner, Alert, AlertIcon, IconButton, Text, Flex,
-  useDisclosure, Checkbox
+  useDisclosure, Checkbox, useToast
 } from '@chakra-ui/react';
 
 import { DeleteIcon, ViewIcon,  SearchIcon } from '@chakra-ui/icons';
@@ -40,6 +40,9 @@ export default function ModelList({ showToast }) {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const [modelToDelete, setModelToDelete] = useState(null);
 
+  const [predictions, setPredictions] = useState([]);
+  const toast = useToast();
+
   const fetchModels = async () => {
     setLoading(true);
     setError(null);
@@ -58,6 +61,25 @@ export default function ModelList({ showToast }) {
   useEffect(() => {
     fetchModels();
   }, []);
+
+    useEffect(() => {
+      const ws = new WebSocket("ws://localhost:8010/ws/predictions");
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        setPredictions((prev) => [data, ...prev]);
+
+        // 觸發 Toast 彈窗通知
+        toast({
+          title: `股票 ${data.ticker} 新預測`,
+          description: `預測收盤價: ${data.predicted_close}，實際: ${data.actual_close ?? '無資料'}`,
+          status: "info",
+          duration: 2000,
+          isClosable: true,
+          position: "top-right",
+        });
+      };
+      return () => ws.close();
+    }, [toast]);
 
 
   const handleViewDetails = (model) => {
@@ -92,7 +114,7 @@ export default function ModelList({ showToast }) {
   };
   const handlePredictSubmit = async(model, target_date) => {
 
-    await predictModel(model, target_date, showToast);
+    predictModel(model, target_date, showToast);
   };
   if (loading) {
     return (

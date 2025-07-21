@@ -107,7 +107,7 @@ class Predictor:
             )
             msg += f"🔍 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}，實際收盤價為：{actual_close:.2f}\n"
 
-        self.log_prediction(predicted_price, target_date)
+        # self.log_prediction(predicted_price, target_date)
 
         return predicted_price, actual_close, msg
 
