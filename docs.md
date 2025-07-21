@@ -4,18 +4,22 @@
 
 ## 📦 專案模組職責說明
 
-| 模組名稱                  | 位置                    | 職責與說明                                                |
-| --------------------- | --------------------- | ---------------------------------------------------- |
-| **frontend**          | `./frontend`          | 使用 React 實作前端 UI，支援股票查詢、歷史視覺化與預測結果展示。                |
-| **backend/api**       | `./backend/api`       | FastAPI 架構的 API 層，負責接收前端請求、查詢資料、進行預測並回傳。             |
-| **backend/src**       | `./backend/src`       | 資料處理與模型邏輯，包括特徵工程、模型訓練與推論。                            |
-| **backend/src/workflows** | `./backend/src/workflows` | 使用 Prefect 定義 ETL 與模型訓練流程，整合於 backend，利於集中管理與 CI/CD。 |
-| **monitor**           | `./monitor`           | 模型與資料監控模組，使用 Evidently 生成報告並導出指標供 Prometheus 抓取。     |
-| **mlruns**            | `./mlruns`            | MLflow 本地模型實驗與模型版本管理目錄。                              |
-| **db**                | PostgreSQL 容器與資料卷     | 儲存歷史股價資料、預測結果與訓練紀錄。                                  |
-| **redis**             | Redis 容器              | 提供查詢快取與中繼狀態存儲，減少資料庫壓力。                               |
-| **prometheus**        | Prometheus 容器         | 收集 `monitor.py` 匯出的指標數據並儲存。                          |
-| **grafana**           | Grafana 容器            | 視覺化 Prometheus 資料，展示模型表現、資料漂移與系統狀態。                  |
+| 模組名稱                      | 目錄位置                      | 職責說明                                                    |
+| ------------------------- | ------------------------- | ------------------------------------------------------- |
+| **frontend**              | `./frontend`              | React 前端，負責股票查詢、歷史資料視覺化、模型預測結果展示、操作介面。                  |
+| **backend/api**           | `./backend/api`           | FastAPI API 層，處理前端請求、路由分發、資料 CRUD、推論 API 等。             |
+| **backend/src**           | `./backend/src`           | 核心商業邏輯：特徵工程、模型訓練、推論邏輯、資料管理。                             |
+| **backend/src/workflows** | `./backend/src/workflows` | 使用 Prefect 定義的批次 ETL 與訓練流程，統一納入 backend，便於 CI/CD 與版本控管。 |
+| **monitor**               | `./monitor`               | 模型監控及資料品質管理，使用 Evidently 產生報告，並暴露 Prometheus 指標供監控系統抓取。 |
+| **mlruns**                | `./mlruns`                | MLflow 本地模型實驗與模型版本管理資料存放目錄。                             |
+| **db**                    | `./db` (PostgreSQL 資料卷)   | PostgreSQL OLTP 與模型元資料存放。                               |
+| **redis**                 | Redis 容器                  | 快取層與訊息中繼，減少 DB 負載，提高系統響應速度。                             |
+| **prometheus**            | Prometheus 容器             | 收集與儲存監控指標資料。                                            |
+| **grafana**               | Grafana 容器                | 指標資料視覺化展示，呈現模型表現、資料漂移及系統狀態。                             |
+| **kafka**                 | Kafka 容器                  | 事件訊息串流平台，用於即時資料與監控訊息傳遞。                                 |
+| **ws\_monitor**           | `./ws_monitor`            | WebSocket 即時監控服務，整合 Kafka 消息並提供前端推播。                    |
+| **celery**                | Celery 任務佇列               | 背景非同步任務處理，如訓練、ETL 等長時間任務。                               |
+| **minio**                 | MinIO 容器                  | 物件存儲服務，作為 MLflow artifact repository。                   |
 
 ---
 
@@ -25,26 +29,36 @@
 graph TD
   subgraph 使用者操作
     A[Frontend<br>React]
-    A -->|HTTP Request| B[Backend<br>FastAPI]
+    A -->|HTTP Request| B[Backend API<br>FastAPI]
   end
 
   subgraph 即時推論系統
-    B -->|查詢資料| D[PostgreSQL]
+    B -->|查詢資料| D[PostgreSQL OLTP]
     B -->|快取查詢| E[Redis]
-    B -->|呼叫| C[Model Runner<br>載入模型 + 預測]
+    B -->|呼叫推論| C[模型推論服務<br>載入模型 + 預測]
   end
 
-  subgraph 批次處理與訓練
-    F[Workflow<br>Prefect] -->|執行| G[ETL/Train<br>Data + Model]
-    G -->|記錄結果| H[MLflow Registry]
+  subgraph 批次任務流程
+    F[Prefect Workflow] -->|ETL + 訓練| G[資料處理與模型訓練]
+    G -->|模型版本管理| H[MLflow Registry]
     G -->|更新資料庫| D
   end
 
-  subgraph 模型監控系統
-    I[monitor.py<br>Evidently Exporter] -->|Metrics| J[Prometheus]
-    J -->|資料來源| K[Grafana Dashboard]
-    I -->|監控歷史資料| D
+  subgraph 監控系統
+    I[monitor.py<br>Evidently匯出指標] -->|Metrics| J[Prometheus]
+    J -->|資料提供| K[Grafana 儀表板]
+    I -->|歷史資料| D
   end
+
+  subgraph 非同步任務佇列
+    L[Celery Worker] <---> M[Redis Broker]
+    L -->|執行訓練/ETL任務| G
+  end
+
+  subgraph 即時監控推播
+    N[Kafka] --> O[ws_monitor WebSocket服務] --> A
+  end
+
 ```
 
 ---
