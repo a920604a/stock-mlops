@@ -5,6 +5,7 @@ DOCKER_COMPOSE_MONITOR = docker compose -f docker-compose.monitor.yml
 TRAIN_BACKEND := backend1
 PREDICT_BACKEND := backend2
 
+FRONTEND_DIR := frontend
 DB_DIRS := db/mlflow_db db/oltp db/model_meta_db db/olap
 DATA_DIRS := data/mlflow_artifacts data/prometheus_data data/minio
 
@@ -71,9 +72,6 @@ train: ## 執行模型訓練
 
 predict: ## 執行模型推論
 	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/inference/predict.py
-
-monitor: ## 啟動監控模組
-	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python -m monitor.monitor
 
 # ========== 測試與品質檢查 ==========
 
