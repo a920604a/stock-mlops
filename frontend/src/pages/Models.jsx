@@ -1,23 +1,22 @@
-// frontend/src/pages/Models.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    Box, Tabs, TabList, TabPanels, Tab, TabPanel,
-    Heading, useToast
+  Box, Tabs, TabList, TabPanels, Tab, TabPanel,
+  Heading, useToast
 } from '@chakra-ui/react';
-import ModelRegisterForm from '../components/ModelRegisterForm'
+import ModelRegisterForm from '../components/ModelRegisterForm';
 import ModelList from '../components/ModelList';
-import TrainStatus from '../components/TrainStatus'
-import PredictionList from '../components/PredictionList';  // 新增
+import TrainStatus from '../components/TrainStatus';
+import PredictionList from '../components/PredictionList';
 
 export default function ModelsPage() {
     const toast = useToast();
+    const [tabIndex, setTabIndex] = useState(1);
 
-    // Function to show a toast message
     const showToast = (title, description, status) => {
         toast({
-            title: title,
-            description: description,
-            status: status,
+            title,
+            description,
+            status,
             duration: 5000,
             isClosable: true,
             position: "top-right",
@@ -26,9 +25,16 @@ export default function ModelsPage() {
 
     return (
         <Box p={6} maxW="1200px" mx="auto">
-            <Heading size="lg" mb={6} textAlign="TrainStatuscenter" color="teal.600">📦 模型管理中心</Heading>
-            <Tabs variant="enclosed" colorScheme="teal" isFitted defaultIndex={1}>
-
+            <Heading size="lg" mb={6} textAlign="center" color="teal.600">
+                📦 模型管理中心
+            </Heading>
+            <Tabs
+                variant="enclosed"
+                colorScheme="teal"
+                isFitted
+                index={tabIndex}
+                onChange={(index) => setTabIndex(index)}
+            >
                 <TabList>
                     <Tab>模型註冊</Tab>
                     <Tab>模型清單</Tab>
@@ -37,20 +43,19 @@ export default function ModelsPage() {
                 </TabList>
                 <TabPanels>
                     <TabPanel>
-                    <ModelRegisterForm showToast={showToast} />
+                        <ModelRegisterForm showToast={showToast} key={tabIndex === 0 ? 'register' : 'other'} />
                     </TabPanel>
                     <TabPanel>
-                    <ModelList showToast={showToast} />
+                        <ModelList showToast={showToast} key={tabIndex === 1 ? 'list' : 'other'} />
                     </TabPanel>
                     <TabPanel>
-                    <TrainStatus showToast={showToast} />
+                        <TrainStatus showToast={showToast} key={tabIndex === 2 ? 'train' : 'other'} />
                     </TabPanel>
                     <TabPanel>
-                        <PredictionList showToast={showToast} />
+                        <PredictionList showToast={showToast} key={tabIndex === 3 ? 'predict' : 'other'} />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
-
         </Box>
     );
 }
