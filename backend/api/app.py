@@ -14,10 +14,16 @@ from prometheus_fastapi_instrumentator import Instrumentator
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 
+origins = [
+    "http://localhost",
+    "http://localhost:3000",  # 如果前端跑在 3000 port
+    # 其他允許的來源
+]
+
 # 設定允許的來源
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # ⬅️ 加上 http://
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

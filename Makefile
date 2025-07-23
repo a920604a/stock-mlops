@@ -7,14 +7,13 @@ PREDICT_BACKEND := backend2
 
 DB_DIRS := db/mlflow_db db/oltp db/model_meta_db db/olap
 DATA_DIRS := data/mlflow_artifacts data/prometheus_data data/minio
-FRONTEND_DIR := frontend
 
 LOCAL_TAG := $(shell date +"%Y-%m-%d-%H-%M")
 LOCAL_IMAGE_NAME := stock-mlops-backend:${LOCAL_TAG}
 
 MAKEFLAGS += --no-builtin-rules
 
-.PHONY: help up down logs clean ingest test build init integration_test quality_checks monitor reset frontend \
+.PHONY: help up down logs clean ingest test build init integration_test quality_checks monitor reset  \
         setup retrain pipeline ci restart publish frontend-dev frontend-build \
         monitor-up monitor-down monitor-logs
 
@@ -122,4 +121,4 @@ monitor-down: ## 關閉監控模組
 monitor-logs: ## 查看監控模組日誌
 	$(DOCKER_COMPOSE_MONITOR) logs -f
 
-dev-setup: monitor-down reset ingest monitor-up frontend-dev
+dev-setup: monitor-down reset ingest monitor-up
