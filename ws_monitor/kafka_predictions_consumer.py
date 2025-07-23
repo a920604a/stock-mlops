@@ -25,47 +25,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# === Evidently Drift Detection Config ===
-
-# === 全域變數與設定 ===
-BASELINE_SIZE = 1  # 測試模式：baseline 設定需要 5 筆
+# === Config ===
+BASELINE_SIZE = 1  # 測試模式
 DRIFT_CHECK_SIZE = 2
-DRIFT_ALERT_THRESHOLD = 0.00
-MISSING_ALERT_THRESHOLD = 0.01
 MAX_WINDOW_SIZE = 50
-
 
 reference_data = None
 current_data = pd.DataFrame()
 
-# Evidently Report
+# === Evidently Report ===
 drift_report = Report(
     metrics=[
         DatasetMissingValueCount(),
-        MissingValueCount(column="Close"),
-        MeanValue(column="Close"),
-        StdValue(column="Close"),
-        QuantileValue(column="Close", quantile=0.5),
+        MissingValueCount(column="actual_close"),
+        MeanValue(column="actual_close"),
+        StdValue(column="actual_close"),
+        QuantileValue(column="actual_close", quantile=0.5),
         DuplicatedRowCount(),
     ]
 )
 
-# === 指標抽取工具函式 ===
-def extract_drift_score(drift_result: dict) -> float:
+# === 工具函式 ===
+def extract_metric(drift_result: dict, metric_name: str, key: str = "result") -> float:
+    """從 Evidently 的結果中提取指定 metric"""
     try:
         for m in drift_result.get("metrics", []):
-            if "ValueDrift(column=Close)" in m.get("metric_id", ""):
-                return float(m["result"]["drift_score"])
-    except Exception:
-        return 0.0
-    return 0.0
-
-
-def extract_missing_ratio(drift_result: dict) -> float:
-    try:
-        for m in drift_result.get("metrics", []):
-            if "DatasetMissingValueCount" in m.get("metric_id", ""):
-                return float(m["result"]["share"])
+            if metric_name in m.get("metric_id", ""):
+                return float(m[key])
     except Exception:
         return 0.0
     return 0.0
@@ -82,7 +68,6 @@ async def kafka_predictions_consumer_loop():
         auto_offset_reset="latest",
     )
 
-    # 連線重試
     while True:
         try:
             logger.info("[KafkaConsumer][predictions] Starting predictions consumer...")
@@ -105,11 +90,6 @@ async def kafka_predictions_consumer_loop():
 
                 # Step 2: 更新 Evidently data window
                 current_data = pd.concat([current_data, pd.DataFrame([data])])
-                if "Close" not in current_data.columns:
-                    current_data["Close"] = current_data.get(
-                        "actual_close", 0.0
-                    )  # 使用 actual_close 取代
-
                 if len(current_data) > MAX_WINDOW_SIZE:
                     current_data = current_data.iloc[-MAX_WINDOW_SIZE:]
 
@@ -119,9 +99,7 @@ async def kafka_predictions_consumer_loop():
                     logger.info(
                         f"[KafkaConsumer][predictions][Evidently] Baseline established with {len(reference_data)} records"
                     )
-                    await broadcast_metrics(
-                        {"type": "baseline_ready", "size": len(reference_data)}
-                    )
+                    # await broadcast_metrics({"type": "baseline_ready", "size": len(reference_data)})
 
                 # Step 2-2: 執行 drift 檢查
                 elif (
@@ -131,29 +109,31 @@ async def kafka_predictions_consumer_loop():
                         snapshot = drift_report.run(
                             reference_data=reference_data, current_data=current_data
                         )
-
                         drift_result = snapshot.dict()
 
-                        drift_score = extract_drift_score(drift_result)
-                        missing_ratio = extract_missing_ratio(drift_result)
+                        missing_ratio = extract_metric(
+                            drift_result, "DatasetMissingValueCount", "result.share"
+                        )
+                        mean_val = extract_metric(
+                            drift_result,
+                            "MeanValue(column=actual_close)",
+                            "result.value",
+                        )
+                        std_val = extract_metric(
+                            drift_result,
+                            "StdValue(column=actual_close)",
+                            "result.value",
+                        )
 
-                        # 廣播 drift metrics
+                        logger.info(
+                            f"[KafkaConsumer][predictions][Evidently] Drift check results: Missing Ratio: {missing_ratio}, Mean Value: {mean_val}, Std Value: {std_val}"
+                        )
                         # await broadcast_metrics({
                         #     "type": "drift_check",
-                        #     "drift_score": drift_score,
-                        #     "missing_ratio": missing_ratio
+                        #     "missing_ratio": missing_ratio,
+                        #     "mean_value": mean_val,
+                        #     "std_value": std_val,
                         # })
-
-                        # Step 2-3: 觸發警報
-                        # if drift_score > DRIFT_ALERT_THRESHOLD or missing_ratio > MISSING_ALERT_THRESHOLD:
-                        alert_msg = {
-                            "type": "alert",
-                            "drift_score": drift_score,
-                            "missing_ratio": missing_ratio,
-                            "message": "Data drift detected (testing mode)!",
-                        }
-                        logger.warning(f"[KafkaConsumer][Evidently][Alert] {alert_msg}")
-                        # await broadcast_alert(alert_msg)
 
                     except Exception as e:
                         logger.warning(
