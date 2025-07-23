@@ -73,6 +73,12 @@ train: ## 執行模型訓練
 predict: ## 執行模型推論
 	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/inference/predict.py
 
+
+monitor: ## 模擬監控
+	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/inference/simulate_predict_days.py --start-date 2025-06-01 --days 15 --ticker AAPL --exchange US --base-url http://localhost:8000
+
+	@echo "📊 模擬監控已完成"
+
 # ========== 測試與品質檢查 ==========
 
 test: ## 執行單元測試
@@ -84,7 +90,8 @@ quality_checks: ## 程式碼風格檢查（isort / black / pylint）
 	pylint backend/src || true
 
 integration_test: ## 執行整合測試
-	LOCAL_IMAGE_NAME=$(LOCAL_IMAGE_NAME) bash backend/integraton-test/run.sh
+# 	LOCAL_IMAGE_NAME=$(LOCAL_IMAGE_NAME) bash backend/integraton-test/run.sh
+	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) pytest integraton-test/test_predict_api.py
 
 # ========== 組合流程 ==========
 
