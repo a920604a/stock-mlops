@@ -229,6 +229,8 @@ services:
       - "8010:8000"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    volumes:
+      - ./ws_monitor:/app
     depends_on:
       - kafka
     networks:

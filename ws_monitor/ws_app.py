@@ -4,7 +4,8 @@ import asyncio
 
 from websocket_predictions import websocket_predictions_endpoint
 from websocket_metrics import websocket_metrics_endpoint
-from kafka_consumers import kafka_predictions_consumer_loop, kafka_metrics_consumer_loop
+from kafka_predictions_consumer import kafka_predictions_consumer_loop
+from kafka_metrics_consumer import kafka_metrics_consumer_loop
 
 app = FastAPI()
 logger = logging.getLogger(__name__)

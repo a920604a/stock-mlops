@@ -26,9 +26,9 @@ async def websocket_metrics_endpoint(websocket: WebSocket):
 
 async def broadcast_metrics(message: dict):
     to_remove = []
-    logger.info(
-        f"[Broadcast][metrics] Sending to {len(metrics_connections)} clients: {message}"
-    )
+    # logger.info(
+    #     f"[Broadcast][metrics] Sending to {len(metrics_connections)} clients: {message}"
+    # )
     for conn in metrics_connections:
         try:
             await conn.send_text(json.dumps(message))
@@ -37,3 +37,21 @@ async def broadcast_metrics(message: dict):
             to_remove.append(conn)
     for conn in to_remove:
         metrics_connections.remove(conn)
+
+
+async def broadcast_alert(alert: dict):
+    # alert 是 metrics 的一部分，也發送給相同 clients
+
+    await _broadcast(metrics_connections, alert)
+
+
+async def _broadcast(connections, message: dict):
+    to_remove = []
+    for conn in connections:
+        try:
+            await conn.send_text(json.dumps(message))
+        except Exception as e:
+            logger.warning(f"[Broadcast][metrics] Error sending: {e}")
+            to_remove.append(conn)
+    for conn in to_remove:
+        connections.remove(conn)
