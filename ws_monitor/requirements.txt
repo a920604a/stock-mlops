@@ -2,3 +2,5 @@ fastapi
 uvicorn[standard]
 aiokafka
 clickhouse_driver
+prometheus-fastapi-instrumentator
+prometheus_client

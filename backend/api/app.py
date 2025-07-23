@@ -8,7 +8,12 @@ from api.routes import models
 from api.routes import mlflow_model
 from api.kafka_producer import init_kafka_producer, close_kafka_producer
 
+import asyncio
+
+
 from prometheus_fastapi_instrumentator import Instrumentator
+
+clients = set()
 
 
 app = FastAPI()
@@ -16,7 +21,7 @@ Instrumentator().instrument(app).expose(app)
 
 origins = [
     "http://localhost",
-    "http://localhost:3000",  # 如果前端跑在 3000 port
+    "http://localhost:5173",  # 如果前端跑在 5173 port
     # 其他允許的來源
 ]
 

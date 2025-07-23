@@ -223,6 +223,7 @@ services:
   ws_monitor:
     build:
       context: ./ws_monitor
+      dockerfile: ../Dockerfile.ws_monitor
     container_name: ws_monitor
     ports:
       - "8010:8000"
@@ -230,6 +231,20 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - kafka
+    networks:
+      - monitor-net
+
+  metrics_publisher:
+    build:
+      context: ./metrics_publisher
+      dockerfile: ../Dockerfile.metrics_publisher
+    container_name: metrics_publisher
+    depends_on:
+      - backend1
+      - kafka
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - PROMETHEUS_ENDPOINT=http://backend1:8000/metrics
     networks:
       - monitor-net
   kafka:

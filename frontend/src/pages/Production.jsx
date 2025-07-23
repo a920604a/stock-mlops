@@ -1,5 +1,5 @@
 import { Button, VStack } from '@chakra-ui/react';
-
+import MetricsDashboard from '../components/MetricsDashboard.jsx';
 export default function Production() {
     return (
         <VStack spacing={4} align="start">
@@ -12,6 +12,7 @@ export default function Production() {
             >
                 開啟監控頁面
             </Button>
+            <MetricsDashboard />
         </VStack>
     );
 }

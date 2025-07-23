@@ -25,7 +25,6 @@ from evidently.metrics import (
     DuplicatedRowCount,
     CategoryCount,
     UniqueValueCount,
-    ScoreDistribution,
 )
 
 
