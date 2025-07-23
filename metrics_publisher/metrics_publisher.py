@@ -20,9 +20,14 @@ logging.basicConfig(
 
 async def init_kafka_producer():
     producer = AIOKafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)
-    await producer.start()
-    logger.info("Kafka Producer 已啟動")
-    return producer
+    while True:
+        try:
+            await producer.start()
+            logger.info("Kafka Producer 已啟動")
+            return producer
+        except Exception as e:
+            logger.warning(f"Kafka Producer 啟動失敗，2 秒後重試... ({e})")
+            await asyncio.sleep(2)
 
 
 async def fetch_prometheus_metrics():

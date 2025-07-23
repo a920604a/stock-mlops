@@ -19,7 +19,7 @@ class PredictionResponse(BaseModel):
     ticker: str
     predicted_close: float
     predicted_at: datetime
-    target_date: datetime
+    target_date: date
     model_metadata_id: int
 
     class Config:
