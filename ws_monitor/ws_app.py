@@ -45,19 +45,29 @@ async def kafka_consumer_loop():
         group_id="prediction_dashboard",
         auto_offset_reset="latest",
     )
-    logger.info("[KafkaConsumer] Starting consumer...")
-    await consumer.start()
+
+    while True:
+        try:
+            logger.info("[KafkaConsumer] Trying to start consumer...")
+            await consumer.start()
+            break
+        except Exception as e:
+            logger.warning(
+                f"[KafkaConsumer] Kafka not ready yet, retrying in 2s... ({e})"
+            )
+            await asyncio.sleep(2)
+
     try:
         async for msg in consumer:
             data = json.loads(msg.value.decode("utf-8"))
             logger.info(f"[KafkaConsumer] Received message: {data}")
 
-            # **1. 寫入 ClickHouse**
+            # 1. 寫入 ClickHouse
             logger.info("[ClickHouse] Inserting prediction data...")
             await insert_prediction_to_clickhouse(data)
             logger.info("[ClickHouse] Insert success.")
 
-            # **2. 廣播到 WebSocket**
+            # 2. 廣播到 WebSocket
             logger.info("[WebSocket] Broadcasting prediction data...")
             await broadcast(data)
 
