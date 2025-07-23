@@ -109,7 +109,7 @@ class Predictor:
 
         # self.log_prediction(predicted_price, target_date)
 
-        return predicted_price, actual_close, msg
+        return predicted_price, actual_close, msg, self.model_meta.id
 
     def log_prediction(self, predicted_price: float, target_date: datetime):
         data = {

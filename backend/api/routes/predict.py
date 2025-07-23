@@ -41,7 +41,7 @@ async def create_prediction(request: PredictRequest):
         print(f"target_date_clean {target_date_clean} {type(target_date_clean)}")
 
         predictor = Predictor(request.ticker, request.exchange)
-        predicted_price, actual_close, msg = predictor.predict_next_close(
+        predicted_price, actual_close, msg, model_id = predictor.predict_next_close(
             target_date_clean
         )
 
@@ -57,6 +57,7 @@ async def create_prediction(request: PredictRequest):
             "predicted_close": predicted_price,
             "actual_close": actual_close,
             "predicted_at": datetime.utcnow().isoformat(),
+            "model_metadata_id": model_id,
             "msg": msg,
         }
 
