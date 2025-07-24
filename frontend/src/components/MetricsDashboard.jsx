@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import ReactECharts from "echarts-for-react";
+import {
+   useToast
+} from '@chakra-ui/react'
 
 export default function MetricsDashboard() {
   const maxPoints = 50;
@@ -14,6 +17,8 @@ export default function MetricsDashboard() {
   const [predictDurData, setPredictDurData] = useState([]);
 
   const [alerts, setAlerts] = useState([]);
+  const toast = useToast(); // 使用 Chakra UI toast
+
   const addDataPoint = (data, value) => {
     const newData = [...data, value];
     if (newData.length > maxPoints) newData.shift();
@@ -22,7 +27,7 @@ export default function MetricsDashboard() {
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8010/ws/metrics");
-    
+
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -68,20 +73,26 @@ export default function MetricsDashboard() {
 
     ws.onmessage = (event) => {
       const alertData = JSON.parse(event.data);
-      console.log("Received alert:", alertData);  
+      console.log("Received alert:", alertData);
       // 新增 alert，並自動消失
       setAlerts((prev) => [...prev, alertData]);
 
       setTimeout(() => {
         setAlerts((prev) => prev.filter((a) => a !== alertData));
       }, 8000); // 8秒後消失
+      toast({
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      })
     };
 
     ws.onopen = () => console.log("WebSocket connected (alerts)");
     ws.onclose = () => console.log("WebSocket disconnected (alerts)");
 
     return () => ws.close();
-  }, []);
+  }, [toast]);
 
   // 各指標的 ECharts 配置
   const makeLineOption = (title, data, yName, unit = "") => ({
@@ -134,7 +145,7 @@ export default function MetricsDashboard() {
       <ReactECharts option={makeLineOption("成功預測次數", predictSuccData, "次")} style={{ height: 250, marginBottom: 30 }} />
       <ReactECharts option={makeLineOption("失敗預測次數", predictFailData, "次")} style={{ height: 250, marginBottom: 30 }} />
       <ReactECharts option={makeLineOption("預測平均耗時", predictDurData, "秒")} style={{ height: 250, marginBottom: 30 }} />
-    
+
       {/* Toast Alerts */}
       <div
         style={{
