@@ -9,7 +9,7 @@ celery_app = Celery(
     "tasks",
     broker=f"redis://{redis_host}:6379/0",  # Redis 為任務佇列中介
     backend=f"redis://{redis_host}:6379/1",  # 追蹤任務狀態用
-    include=["tasks.train_model_task"],
+    include=["tasks.train_model_task", "tasks.predict_tasks"],
 )
 
 # 確保 Celery Worker 發送事件

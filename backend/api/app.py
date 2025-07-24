@@ -7,6 +7,8 @@ from api.routes import etl
 from api.routes import models
 from api.routes import mlflow_model
 from api.kafka_producer import init_kafka_producer, close_kafka_producer
+from src.db.clickhouse.schema.create_clickhouse_table import create_clickhouse_table
+
 
 import asyncio
 
@@ -47,6 +49,7 @@ app.include_router(mlflow_model.router, prefix="/api", tags=["model"])
 # 啟動時初始化 Kafka Producer
 @app.on_event("startup")
 async def startup_event():
+    create_clickhouse_table()
     from asyncio import sleep
     from aiokafka.errors import KafkaConnectionError
 

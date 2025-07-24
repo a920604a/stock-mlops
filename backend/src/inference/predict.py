@@ -107,32 +107,7 @@ class Predictor:
             )
             msg += f"🔍 預測 {self.ticker} {target_date.date()} 收盤價為：{predicted_price:.2f}，實際收盤價為：{actual_close:.2f}\n"
 
-        # self.log_prediction(predicted_price, target_date)
-
         return predicted_price, actual_close, msg, self.model_meta.id
-
-    def log_prediction(self, predicted_price: float, target_date: datetime):
-        data = [
-            (
-                self.ticker,
-                float(predicted_price),
-                datetime.utcnow(),
-                target_date,
-                int(self.model_meta.id),
-            )
-        ]
-
-        insert_sql = """
-            INSERT INTO stock_predictions
-            (ticker, predicted_close, predicted_at, target_date, model_metadata_id)
-            VALUES
-        """
-
-        client.execute(insert_sql, data)
-
-        logger.info(
-            f"✅ 已記錄預測：{self.ticker} {target_date.date()} 的收盤價 = {predicted_price:.2f}"
-        )
 
 
 if __name__ == "__main__":

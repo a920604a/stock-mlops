@@ -102,12 +102,13 @@ services:
     networks:
       - monitor-net
 
-  celery:
+  celery_train:
     build:
       context: ./backend
       dockerfile: ../Dockerfile.backend
-    container_name: celery
-    command: celery -A celery_worker.celery_app worker --loglevel=info --events
+    container_name: celery_train
+    command: celery -A celery_worker.celery_app worker -Q train_queue -n worker.train@%h --loglevel=info --events
+
     environment:
       - DATABASE_URL=postgresql://user:password@model_meta_db:5432/stocks
       - REDIS_HOST=redis
@@ -128,6 +129,43 @@ services:
       - ./backend:/app
     networks:
       - monitor-net
+  celery_predict:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: celery_predict
+    command: celery -A celery_worker.celery_app worker -Q predict_queue -n worker.predict@%h --loglevel=info --events
+    environment:
+      - DATABASE_URL=postgresql://user:password@model_meta_db:5432/stocks
+      - REDIS_HOST=redis
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_DB=default
+      - AWS_ACCESS_KEY_ID=mlflow
+      - AWS_SECRET_ACCESS_KEY=mlflow123
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - PROMETHEUS_MULTIPROC_DIR=/tmp/celery_metrics # 必須設置，用於多進程模式
+    depends_on:
+      - redis
+      - backend1
+      - backend2
+    volumes:
+      - ./backend:/app
+    networks:
+      - monitor-net
+  flower:
+    image: mher/flower:0.9.7
+    container_name: flower
+
+    command: flower --broker=redis://redis:6379/0 --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - monitor-net
 
   celery_exporter: # 新增的 Celery Prometheus Exporter 服務
     image: ghcr.io/danihodovic/celery-exporter:latest # 使用預構建的 Docker 鏡像
@@ -140,7 +178,8 @@ services:
       - CE_ENABLE_EVENTS=true # 啟用事件監聽
     depends_on:
       - redis # 依賴於 Redis broker
-      - celery # 依賴於 celery worker 確保其啟動並發送事件
+      - celery_train
+      - celery_predict # 依賴於  worker 確保其啟動並發送事件
     networks:
       - monitor-net
 

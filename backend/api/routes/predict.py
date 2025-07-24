@@ -1,5 +1,6 @@
 # api/routes/predict.py
 
+from api.schemas.predict_request import FuturePredictResponse, FuturePredictRequest
 from fastapi import APIRouter, HTTPException
 from src.inference.predict import Predictor
 from api.schemas.predict_request import (
@@ -7,30 +8,26 @@ from api.schemas.predict_request import (
     PredictResponse,
     PredictionResponse,
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 from src.db.clickhouse.reader import read_predictions
 from api.kafka_producer import send_prediction_to_kafka
 import asyncio
 import logging
 import pandas as pd
+from tasks.predict_tasks import simulate_future_predictions
+from api.metrics import (
+    predict_success_total,
+    predict_failure_total,
+)
+
+from celery.result import AsyncResult
+from celery_worker import celery_app
 
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-from prometheus_client import Counter, Histogram
-
-predict_success_total = Counter(
-    "predict_success_total", "Number of successful predict jobs"
-)
-predict_failure_total = Counter(
-    "predict_failure_total", "Number of failed predict jobs"
-)
-predict_duration_seconds = Histogram(
-    "predict_duration_seconds", "Predicting duration in seconds"
-)
 
 
 @router.post("/predict/", response_model=PredictResponse)
@@ -86,3 +83,29 @@ def list_predictions(ticker: str = None):
     # 將 DataFrame 轉成 dict list，FastAPI 會自動轉換成 JSON
     results = df.to_dict(orient="records")
     return results
+
+
+@router.post("/predict/future/", response_model=FuturePredictResponse)
+async def create_future_predictions(req: FuturePredictRequest):
+
+    print(f"Received future prediction request: {req}")
+    task = simulate_future_predictions.delay(req.ticker, req.exchange, req.days)
+    print(f"Future prediction task created: {task.id}")
+    return FuturePredictResponse(status="submitted", task_id=task.id)
+
+
+@router.get("/predict/future/status/{task_id}")
+def get_future_prediction_status(task_id: str):
+    # 這裡可以根據 task_id 查詢任務狀態
+    result = AsyncResult(task_id, app=celery_app)
+    logger.info(f"Checking status for future prediction task: {task_id}")
+    if result.state == "PENDING":
+        return {"task_id": task_id, "status": "pending"}
+    elif result.state == "STARTED":
+        return {"task_id": task_id, "status": "running"}
+    elif result.state == "SUCCESS":
+        return {"task_id": task_id, "status": "completed", "result": result.result}
+    elif result.state == "FAILURE":
+        return {"task_id": task_id, "status": "failed", "error": str(result.result)}
+    else:
+        raise HTTPException(status_code=400, detail="Unknown task state")

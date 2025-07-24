@@ -19,9 +19,10 @@
 | **kafka**                 | Kafka 容器                  | 事件訊息串流平台，用於即時資料與監控訊息傳遞。                                 |
 | **metrics_publisher**      | `./metrics_publisher`      | 定期從 backend 暴露的 `/metrics` 端點抓取 Prometheus 指標，並透過 Kafka 發送至即時監控管道。 |
 | **ws_monitor**            | `./ws_monitor`             | WebSocket 即時監控服務，整合 Kafka 消息並提供前端推，包含異常監控                    |
-| **celery**                | Celery 任務佇列               | 背景非同步任務處理，如訓練、ETL 等長時間任務。                               |
+| **celery**                | Celery 任務佇列               | 背景非同步任務處理，如訓練、 長時間的預測等長時間任務。                               |
+| **flow**                |        一個基於 Web 的 Celery 監控工具      |     一個基於 Web 的 Celery 監控工具                           |
 | **minio**                 | MinIO 容器                  | 物件存儲服務，作為 MLflow artifact repository。                   |
-
+| **redis**                |            |     給 Celery 當作「Broker」                           |
 
 ---
 

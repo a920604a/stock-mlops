@@ -24,3 +24,14 @@ class PredictionResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class FuturePredictRequest(BaseModel):
+    ticker: str
+    exchange: str
+    days: int = 5
+
+
+class FuturePredictResponse(BaseModel):
+    status: str
+    task_id: str

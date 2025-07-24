@@ -8,19 +8,15 @@ import logging
 
 logger = logging.getLogger(__name__)  # 建立 logger
 
-from prometheus_client import Counter, Histogram
-
-train_success_total = Counter(
-    "train_success_total", "Number of successful training jobs"
-)
-train_failure_total = Counter("train_failure_total", "Number of failed training jobs")
-train_duration_seconds = Histogram(
-    "train_duration_seconds", "Training duration in seconds"
+from api.metrics import (
+    train_success_total,
+    train_failure_total,
 )
 
 
-@celery_app.task(bind=True)
-def train_model_task(self, model: dict):
+@celery_app.task(queue="train_queue")
+def train_model_task(model: dict):
+
     try:
         config = TrainConfig(
             model_type=model["model_type"],

@@ -1,5 +1,6 @@
 // frontend/src/components/ModelActions.js
-import { submitTrainJob, submitPredictJob, deleteModelById } from '../api/model';
+import { submitTrainJob, deleteModelById } from '../api/model';
+import { submitPredictJob } from '../api/predictions';
 
 export async function trainModel(model, showToast) {
   try {

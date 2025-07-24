@@ -113,16 +113,3 @@ export const submitTrainJob = async (modelId) => {
     throw error;
   }
 };
-
-
-// 假設預測 API
-export const submitPredictJob = async (ticker, exchange, target_date) => {
-  try {
-    const response = await axios.post(`${BASE_URL}/predict/`, {ticker: ticker, exchange: exchange, target_date: target_date});
-    console.log('response', response.data)
-    return response.data;
-  } catch (error) {
-    console.error("API 提交預測任務失敗:", error);
-    throw error;
-  }
-};

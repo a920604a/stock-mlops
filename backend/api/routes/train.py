@@ -9,17 +9,12 @@ from api.schemas.train_request import TrainRequest, TrainResponse
 from src.db.postgres.crud.crud import get_model
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 @router.post("/train")
 def submit_train_job(req: TrainRequest):
-    print(f"submit_train_job {req.model_id}")
     model = get_model(req.model_id)
-    print("model", model.dict(), type(model.dict()))
-    # task = train_model_task.delay(model)
     task = train_model_task.delay(model.dict())
-    print(f"Submitted train task with ID: {task.id}")
     return TrainResponse(task_id=f"{task.id}")
 
 
