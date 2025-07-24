@@ -1,13 +1,13 @@
 from clickhouse_driver import Client
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
+
 
 client = Client(host="clickhouse")
 
 
 async def insert_prediction_to_clickhouse(prediction: dict):
-    from concurrent.futures import ThreadPoolExecutor
-    import asyncio
-
     def to_datetime(value):
         # 確保 value 是 datetime 物件
 
@@ -38,6 +38,33 @@ async def insert_prediction_to_clickhouse(prediction: dict):
                     predicted_at,
                     target_date,
                     int(prediction.get("model_metadata_id", 0)),
+                )
+            ],
+        )
+
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(ThreadPoolExecutor(), sync_insert)
+
+
+async def insert_alert_to_clickhouse(alert: dict):
+    def sync_insert():
+        alert_time = datetime.now()
+
+        client.execute(
+            """
+            INSERT INTO default.stock_alerts
+            (ticker, alert_type, alert_time, messages, target_date)
+            VALUES
+            """,
+            [
+                (
+                    alert["ticker"],
+                    alert["type"],
+                    alert_time,
+                    alert["messages"],
+                    datetime.fromisoformat(
+                        alert.get("target_date", "1970-01-01T00:00:00")
+                    ),
                 )
             ],
         )

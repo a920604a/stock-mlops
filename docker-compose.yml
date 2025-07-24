@@ -229,6 +229,10 @@ services:
       - "8010:8000"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000 # 預設是連接 ClickHouse 的 TCP 端口（9000）
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_DB=default
     volumes:
       - ./ws_monitor:/app
     depends_on:

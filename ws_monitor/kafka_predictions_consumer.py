@@ -4,7 +4,7 @@ import logging
 import pandas as pd
 from aiokafka import AIOKafkaConsumer
 from websocket_predictions import broadcast_predictions
-from db import insert_prediction_to_clickhouse
+from db import insert_prediction_to_clickhouse, insert_alert_to_clickhouse
 from evidently import Report
 from evidently.metrics import (
     DatasetMissingValueCount,
@@ -16,7 +16,6 @@ from evidently.metrics import (
 )
 from websocket_anomalies import broadcast_alert
 
-from websocket_metrics import broadcast_metrics
 
 # === Logging ===
 logging.basicConfig(
@@ -228,12 +227,14 @@ async def kafka_predictions_consumer_loop():
                         alert_msg = check_anomalies(drift_result)
 
                         if alert_msg:
+                            alert_msg["target_date"] = data.get("target_date", None)
+                            alert_msg["ticker"] = data.get("ticker", None)
+                            # 如有 WebSocket alert 功能，這裡可開啟
+                            await broadcast_alert(alert_msg)
                             logger.warning(
                                 f"[KafkaConsumer][Evidently][Alert] {alert_msg}"
                             )
-                            alert_msg["target_date"] = data.get("target_date", None)
-                            # 如有 WebSocket alert 功能，這裡可開啟
-                            await broadcast_alert(alert_msg)
+                            await insert_alert_to_clickhouse(alert_msg)
 
                     except Exception as e:
                         logger.warning(
