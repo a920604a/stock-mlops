@@ -1,13 +1,16 @@
 import os
 
-import clickhouse_connect
+
+from clickhouse_driver import Client
 
 
 def create_clickhouse_table():
-    client = clickhouse_connect.get_client(
+    client = Client(
         host=os.getenv("CLICKHOUSE_HOST", "localhost"),
-        port=int(os.getenv("CLICKHOUSE_PORT", 9000)),  # 預設 ClickHouse TCP 端口
-        username=os.getenv("CLICKHOUSE_USER", "default"),
+        port=int(
+            os.getenv("CLICKHOUSE_PORT", 9000)
+        ),  # clickhouse_driver TCP port 通常是 9000
+        user=os.getenv("CLICKHOUSE_USER", "default"),
         password=os.getenv("CLICKHOUSE_PASSWORD", ""),
         database=os.getenv("CLICKHOUSE_DB", "default"),
     )
@@ -21,5 +24,5 @@ def create_clickhouse_table():
     ) ENGINE = MergeTree()
     ORDER BY (ticker, predicted_at);
     """
-    client.command(create_table_sql)
+    client.execute(create_table_sql)
     print("✅ ClickHouse table created or already exists.")

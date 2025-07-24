@@ -4,7 +4,7 @@ sqlalchemy
 psycopg2-binary==2.9.9
 python-dotenv
 websockets>=10.0
-clickhouse-connect
 numpy==1.24.4
 pyarrow==14.0.1
-pandas==2.1.4
+pandas
+clickhouse_driver

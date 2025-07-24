@@ -29,7 +29,7 @@ services:
       - REDIS_HOST=redis
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - CLICKHOUSE_HOST=clickhouse
-      - CLICKHOUSE_PORT=8123
+      - CLICKHOUSE_PORT=9000
       - CLICKHOUSE_PASSWORD=
       - CLICKHOUSE_DB=default
       - AWS_ACCESS_KEY_ID=mlflow
@@ -57,7 +57,7 @@ services:
       - REDIS_HOST=redis
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - CLICKHOUSE_HOST=clickhouse
-      - CLICKHOUSE_PORT=8123
+      - CLICKHOUSE_PORT=9000
       - CLICKHOUSE_PASSWORD=
       - CLICKHOUSE_DB=default
       - AWS_ACCESS_KEY_ID=mlflow
@@ -113,7 +113,7 @@ services:
       - REDIS_HOST=redis
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - CLICKHOUSE_HOST=clickhouse
-      - CLICKHOUSE_PORT=8123
+      - CLICKHOUSE_PORT=9000
       - CLICKHOUSE_PASSWORD=
       - CLICKHOUSE_DB=default
       - AWS_ACCESS_KEY_ID=mlflow

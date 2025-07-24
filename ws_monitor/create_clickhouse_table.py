@@ -5,7 +5,7 @@ import os
 def create_clickhouse_table():
     client = Client(
         host=os.getenv("CLICKHOUSE_HOST", "localhost"),
-        port=int(os.getenv("CLICKHOUSE_PORT", 8123)),  # clickhouse_driver 預設 port 8123
+        port=int(os.getenv("CLICKHOUSE_PORT", 9000)),  # clickhouse_driver 預設 port 9000
         user=os.getenv("CLICKHOUSE_USER", "default"),
         password=os.getenv("CLICKHOUSE_PASSWORD", ""),
         database=os.getenv("CLICKHOUSE_DB", "default"),

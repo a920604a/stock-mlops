@@ -1,7 +1,7 @@
 import os
 import time
 
-import clickhouse_connect
+from clickhouse_driver import Client
 import pandas as pd
 import yfinance as yf
 from dotenv import load_dotenv
@@ -12,10 +12,13 @@ load_dotenv()
 
 
 def create_clickhouse_table():
-    client = clickhouse_connect.get_client(
+
+    client = Client(
         host=os.getenv("CLICKHOUSE_HOST", "localhost"),
-        port=int(os.getenv("CLICKHOUSE_PORT", 8123)),
-        username=os.getenv("CLICKHOUSE_USER", "default"),
+        port=int(
+            os.getenv("CLICKHOUSE_PORT", 9000)
+        ),  # clickhouse_driver 預設 TCP 端口 9000
+        user=os.getenv("CLICKHOUSE_USER", "default"),
         password=os.getenv("CLICKHOUSE_PASSWORD", ""),
         database=os.getenv("CLICKHOUSE_DB", "default"),
     )
@@ -43,7 +46,8 @@ def create_clickhouse_table():
     ) ENGINE = MergeTree()
     ORDER BY (ticker, Date);
     """
-    client.command(create_table_sql)
+
+    client.execute(create_table_sql)
     print("✅ ClickHouse table created or already exists.")
 
 
@@ -69,8 +73,8 @@ def save_raw_data(
     df: pd.DataFrame, ticker: str, exchange: str, table_name: str = "raw_stock_prices"
 ):
     DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://user:password@localhost:5412/stocks"
-)
+        "DATABASE_URL", "postgresql://user:password@localhost:5412/stocks"
+    )
     engine = create_engine(DATABASE_URL)
 
     df = df.copy()
@@ -132,8 +136,8 @@ def save_processed_data(
     df: pd.DataFrame, ticker: str, exchange: str, table_name: str = "stock_prices"
 ):
     DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://user:password@localhost:5412/stocks"
-)
+        "DATABASE_URL", "postgresql://user:password@localhost:5412/stocks"
+    )
     engine = create_engine(DATABASE_URL)
 
     df = df.copy()
@@ -146,10 +150,10 @@ def save_processed_data(
 
 @task
 def insert_to_clickhouse(df: pd.DataFrame, ticker: str, exchange: str):
-    client = clickhouse_connect.get_client(
+    client = Client(
         host=os.getenv("CLICKHOUSE_HOST", "localhost"),
-        port=int(os.getenv("CLICKHOUSE_PORT", 8123)),
-        username=os.getenv("CLICKHOUSE_USER", "default"),
+        port=int(os.getenv("CLICKHOUSE_PORT", 9000)),
+        user=os.getenv("CLICKHOUSE_USER", "default"),
         password=os.getenv("CLICKHOUSE_PASSWORD", ""),
         database=os.getenv("CLICKHOUSE_DB", "default"),
     )
@@ -209,7 +213,15 @@ def insert_to_clickhouse(df: pd.DataFrame, ticker: str, exchange: str):
     ]
 
     # 寫入 ClickHouse
-    client.insert_df("stock_prices", df[columns])
+
+    # 轉成 list of tuples
+    data = [tuple(row) for row in df[columns].to_numpy()]
+    # 使用 INSERT 語法
+    insert_sql = f"""
+        INSERT INTO stock_prices ({','.join(columns)}) VALUES
+    """
+
+    client.execute(insert_sql, data)
     print(f"✅ Inserted {len(df)} rows into ClickHouse 'stock_prices' table")
 
 
