@@ -28,15 +28,14 @@
 
 ## services
 
-| 分類        | 包含服務                                                                                                        | 建議檔案名稱                        |
-| --------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| **監控**    | prometheus、grafana、node-exporter、cadvisor、blackbox-exporter、celery\_exporter、metrics\_publisher、celery_exporter | `docker-compose.monitor.yml`  |
-| **前端**    | nginx                                                                                         | `docker-compose.frontend.yml` |
-| **後端**    | mlflow、backend1、backend2                   | `docker-compose.backend.yml`  |
-| **資料庫**   | redis、raw\_db、model\_meta\_db、mlflow-db、clickhouse、minio 、init-minio                                           | `docker-compose.database.yml` |
-| **Kafka** | kafka、 kafka-ui、metrics\_publisher、ws_monitor                                                                                                   | `docker-compose.kafka.yml`    |
-| **Celery** | celery\_train、celery\_predict、flower                                                                                                       | `docker-compose.celery.yml`    |
-
+| 分類         | 包含服務                                                                                                             | 建議檔案名稱                        |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **監控**     | prometheus、grafana、node-exporter、cadvisor、blackbox-exporter、celery\_exporter | `docker-compose.monitor.yml`  |
+| **前端**     | nginx                                                                                                            | `docker-compose.frontend.yml` |
+| **後端**     | mlflow、backend1、backend2                                                                                         | `docker-compose.backend.yml`  |
+| **資料庫**    | redis、raw\_db、model\_meta\_db、mlflow-db、clickhouse、minio、init-minio                                              | `docker-compose.database.yml` |
+| **Kafka**  | kafka、kafka-ui、metrics\_publisher、ws\_monitor                                                                    | `docker-compose.kafka.yml`    |
+| **Celery** | celery\_train、celery\_predict、flower                                                                             | `docker-compose.celery.yml`   |
 
 frontend
 - http://localhost:5173
@@ -86,6 +85,34 @@ MONITOR
 - cadvisor http://localhost:8080
 - blackbox-exporter http://localhost:9115
 
+| 服務分類                 | 服務名稱 / 說明                           | 服務網址 / 端口                                                                                                                             |
+| -------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend**         | React 開發伺服器 / 靜態頁面                  | [http://localhost:5173](http://localhost:5173)<br>[http://localhost](http://localhost)                                                |
+| **Backend**          | API 文件 (Swagger UI)                 | [http://localhost:8001/docs](http://localhost:8001/docs)<br>[http://localhost:8002/docs](http://localhost:8002/docs) (Kafka Producer) |
+| **Model Experience** | 模型體驗或展示服務                           | [http://localhost:5010](http://localhost:5010)                                                                                        |
+| **MinIO Storage**    | 物件存儲管理介面                            | [http://localhost:9001](http://localhost:9001)                                                                                        |
+| **Celery**           | Flower 監控 UI                        | [http://localhost:5555](http://localhost:5555)                                                                                        |
+|                      | celery\_predict Worker              | —                                                                                                                                     |
+|                      | celery\_train Worker                | —                                                                                                                                     |
+| **Redis**            | Broker (任務隊列中介)                     | Redis 6379 DB 0                                                                                                                       |
+|                      | Backend (追蹤任務狀態)                    | Redis 6379 DB 1                                                                                                                       |
+| **Kafka**            | backend2 (Kafka Producer)           | —                                                                                                                                     |
+|                      | metrics\_publisher (Kafka Producer) | —                                                                                                                                     |
+|                      | Kafka Broker                        | kafka:9092                                                                                                                            |
+|                      | ws\_monitor (Kafka Consumer)        | [http://localhost:8010/docs](http://localhost:8010/docs)                                                                              |
+|                      | Kafka UI                            | [http://localhost:8082/](http://localhost:8082/)                                                                                      |
+| **資料庫**              | PostgreSQL model\_meta\_db          | postgres:5411                                                                                                                         |
+|                      | PostgreSQL raw\_db                  | postgres:5412                                                                                                                         |
+|                      | PostgreSQL mlflow-db                | postgres:5422                                                                                                                         |
+|                      | Redis                               | redis:6379                                                                                                                            |
+|                      | ClickHouse SQL Play                 | [http://localhost:8123/play](http://localhost:8123/play)                                                                              |
+|                      | ClickHouse Dashboard                | [http://localhost:8123/dashboard](http://localhost:8123/dashboard)                                                                    |
+| **監控系統**             | celery\_exporter                    | —                                                                                                                                     |
+|                      | Prometheus                          | [http://localhost:9090](http://localhost:9090)                                                                                        |
+|                      | Grafana                             | [http://localhost:3002/](http://localhost:3002/)                                                                                      |
+|                      | node-exporter                       | [http://localhost:9100/](http://localhost:9100/)                                                                                      |
+|                      | cAdvisor                            | [http://localhost:8080](http://localhost:8080)                                                                                        |
+|                      | blackbox-exporter                   | [http://localhost:9115](http://localhost:9115)                                                                                        |
 
 | 特性     | **Celery**       | **Kafka**               |
 | ------ | ---------------- | ----------------------- |
