@@ -37,127 +37,71 @@
 | **Kafka**  | kafka、kafka-ui、metrics\_publisher、ws\_monitor                                                                    | `docker-compose.kafka.yml`    |
 | **Celery** | celery\_train、celery\_predict、flower                                                                             | `docker-compose.celery.yml`   |
 
-frontend
-- http://localhost:5173
-- http://localhost
-backend
-- http://localhost:8001/docs
-- http://localhost:8002/docs as kafka producer
-model experience
-- http://localhost:5010
-minIO storage
-- http://localhost:9001
 
-celery
-- flower http://localhost:5555  監控和管理 Celery 任務的 Web UI 工具
-- celery_predict as Worker
-- celery_train as Worker
-- Redis:6379/0 as broker  Redis 為任務佇列中介
-- Redis:6379/1 as backend 追蹤任務狀態用
-
-redis
-- 主要用途：作為 Celery 的 任務隊列 broker。
-- 間接用途：提供 Flower 與 Celery Exporter 監控 Celery 狀態的訊息來源。
-
- 
-kafka
-- backend2 as kafka Producer  發送消息到 Kafka Topic 的客戶端應用程式
-- metrics_publisher as kafka Producer  發送消息到 Kafka Topic 的客戶端應用程式
-- kafka:9092  Kafka Broker
-- ws_monitor http://localhost:8010/docs  Consumer
-- http://localhost:8082/ kafka ui
-
-
-DB
-- postgres:5411 model_meta_db
-- postgres:5412 raw_db
-- postgres:5422 mlflow-db
-- redis:6379 
-- clickhouse 
-- http://localhost:8123/play
-- http://localhost:8123/dashboard
-
-MONITOR
-- celery_exporter
-- http://localhost:9090
-- grafana http://localhost:3002/ 
-- node-exporter http://localhost:9100/
-- cadvisor http://localhost:8080
-- blackbox-exporter http://localhost:9115
-
-| 服務分類                 | 服務名稱 / 說明                           | 服務網址 / 端口                                                                                                                             |
-| -------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Frontend**         | React 開發伺服器 / 靜態頁面                  | [http://localhost:5173](http://localhost:5173)<br>[http://localhost](http://localhost)                                                |
-| **Backend**          | API 文件 (Swagger UI)                 | [http://localhost:8001/docs](http://localhost:8001/docs)<br>[http://localhost:8002/docs](http://localhost:8002/docs) (Kafka Producer) |
-| **Model Experience** | 模型體驗或展示服務                           | [http://localhost:5010](http://localhost:5010)                                                                                        |
-| **MinIO Storage**    | 物件存儲管理介面                            | [http://localhost:9001](http://localhost:9001)                                                                                        |
-| **Celery**           | Flower 監控 UI                        | [http://localhost:5555](http://localhost:5555)                                                                                        |
-|                      | celery\_predict Worker              | —                                                                                                                                     |
-|                      | celery\_train Worker                | —                                                                                                                                     |
-| **Redis**            | Broker (任務隊列中介)                     | Redis 6379 DB 0                                                                                                                       |
-|                      | Backend (追蹤任務狀態)                    | Redis 6379 DB 1                                                                                                                       |
-| **Kafka**            | backend2 (Kafka Producer)           | —                                                                                                                                     |
-|                      | metrics\_publisher (Kafka Producer) | —                                                                                                                                     |
-|                      | Kafka Broker                        | kafka:9092                                                                                                                            |
-|                      | ws\_monitor (Kafka Consumer)        | [http://localhost:8010/docs](http://localhost:8010/docs)                                                                              |
-|                      | Kafka UI                            | [http://localhost:8082/](http://localhost:8082/)                                                                                      |
-| **資料庫**              | PostgreSQL model\_meta\_db          | postgres:5411                                                                                                                         |
-|                      | PostgreSQL raw\_db                  | postgres:5412                                                                                                                         |
-|                      | PostgreSQL mlflow-db                | postgres:5422                                                                                                                         |
-|                      | Redis                               | redis:6379                                                                                                                            |
-|                      | ClickHouse SQL Play                 | [http://localhost:8123/play](http://localhost:8123/play)                                                                              |
-|                      | ClickHouse Dashboard                | [http://localhost:8123/dashboard](http://localhost:8123/dashboard)                                                                    |
-| **監控系統**             | celery\_exporter                    | —                                                                                                                                     |
-|                      | Prometheus                          | [http://localhost:9090](http://localhost:9090)                                                                                        |
-|                      | Grafana                             | [http://localhost:3002/](http://localhost:3002/)                                                                                      |
-|                      | node-exporter                       | [http://localhost:9100/](http://localhost:9100/)                                                                                      |
-|                      | cAdvisor                            | [http://localhost:8080](http://localhost:8080)                                                                                        |
-|                      | blackbox-exporter                   | [http://localhost:9115](http://localhost:9115)                                                                                        |
-
-| 特性     | **Celery**       | **Kafka**               |
-| ------ | ---------------- | ----------------------- |
-| 核心定位   | 任務隊列（Task Queue） | 流處理（Streaming Platform） |
-| 吞吐量    | 中等（受 broker 限制）  | 極高                      |
-| 任務回傳   | 支援               | 無                       |
-| 適合場景   | 短任務、批次、排程        | 高頻事件、實時流                |
-| Broker | RabbitMQ、Redis   | Kafka Cluster           |
-| 保留訊息   | 不常用（完成即刪除）       | 可長期保留並回放                |
-
-> Client → Broker → Worker → Result Backend
-> Producer → Kafka Broker (Topic + Partition) → Consumer Group
 
 
 ## API
-- GET http://localhost:8001/api/predict/
 
-model
-- GET /api/models/
-- POST /api/models/
-- GET /api/models/{model_id}
-- DELETE /api/models/{model_id}
-- GET /api/mlflow/models (deprecation)
-- GET /api/mlflow/{model_id}
+小安，這裡幫你整理成一個結構清晰的 API 清單，方便閱讀和後續擴充：
 
-train
-- POST /api/train
-  - backend1 celery task -> redis Broker -> celery_train worker -> backend1
-- GET /api/train/status/{task_id}
+---
 
-predict
-- GET /api/predict/ 預測紀錄
-- POST /api/predict/ 單筆欸測
-  - backend2 as kafka producer -> kafka broker -> ws_monitor as kafka consumer
+## API 介面清單
 
-- POST /api/predict/future/ 未來多天預測 
-  - backend2 celery task -> redis Broker -> celery_predict worker -> backend2
-- GET /api/predict/future/status/{task_id} 
-- GET /api/predict/future/partial_status/{task_id}
+### 1. 預測 (Predict)
 
-- GET /metrics
-  - backend1 -> prometheus
-  - metrics_publisher as kafka producer -> kafka broker -> ws_monitor as kafka consumer
+| 方法   | 路徑                                             | 描述           | 備註                                |
+| ---- | ---------------------------------------------- | ------------ | --------------------------------- |
+| GET  | `/api/predict/`                                | 查詢歷史預測紀錄     |                                   |
+| POST | `/api/predict/`                                | 單筆即時預測       | backend2 as kafka producer -> kafka broker -> ws_monitor as kafka consumer 。由 backend2 作為 Kafka Producer 發送訊息 |
+| POST | `/api/predict/future/`                         | 多天未來預測       | backend2 celery task -> redis Broker -> celery_predict worker -> backend2。透過 Celery 任務非同步執行                 |
+| GET  | `/api/predict/future/status/{task_id}`         | 查詢未來預測任務狀態   |                                   |
+| GET  | `/api/predict/future/partial_status/{task_id}` | 查詢未來預測任務部分狀態 |                                   |
+
+---
+
+### 2. 模型管理 (Model)
+
+| 方法     | 路徑                       | 描述                | 備註 |
+| ------ | ------------------------ | ----------------- | -- |
+| GET    | `/api/models/`           | 列出所有模型            |    |
+| POST   | `/api/models/`           | 新增模型              |    |
+| GET    | `/api/models/{model_id}` | 取得指定模型詳細          |    |
+| DELETE | `/api/models/{model_id}` | 刪除指定模型            |    |
+| GET    | `/api/mlflow/models`     | MLflow 模型列表 (將棄用) |    |
+| GET    | `/api/mlflow/{model_id}` | MLflow 模型詳細       |    |
+
+---
+
+### 3. 訓練任務 (Train)
+
+| 方法   | 路徑                            | 描述       | 備註                            |
+| ---- | ----------------------------- | -------- | ----------------------------- |
+| POST | `/api/train`                  | 提交模型訓練任務 | backend1 celery task -> redis Broker -> celery_train worker -> backend1    。 透過 backend1 將任務放入 Celery 任務佇列 |
+| GET  | `/api/train/status/{task_id}` | 查詢訓練任務狀態 |                               |
+
+---
+
+### 4. 監控指標 (Metrics)
+
+| 方法  | 路徑         | 描述          | 備註                                                                 |
+| --- | ---------- | ----------- | ------------------------------------------------------------------ |
+| GET | `/metrics` | 取得系統與模型監控指標 | 由 backend1 提供；metrics\_publisher 會拉取並透過 Kafka 發送給 ws\_monitor 推播前端。 |
+
+- backend1 -> prometheus
+- metrics_publisher as kafka producer -> kafka broker -> ws_monitor as kafka consumer
 datasets
-- GET /api/datasets
+---
+
+### 5. 資料集 (Datasets)
+
+| 方法  | 路徑              | 描述      | 備註 |
+| --- | --------------- | ------- | -- |
+| GET | `/api/datasets` | 取得資料集列表 |    |
+
+---
+
+
 ## 🔁 工作流程與資料流說明
 
 ```mermaid
