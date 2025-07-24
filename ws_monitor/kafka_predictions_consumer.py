@@ -231,9 +231,9 @@ async def kafka_predictions_consumer_loop():
                             logger.warning(
                                 f"[KafkaConsumer][Evidently][Alert] {alert_msg}"
                             )
+                            alert_msg["target_date"] = data.get("target_date", None)
                             # 如有 WebSocket alert 功能，這裡可開啟
                             await broadcast_alert(alert_msg)
-                            # await broadcast_metrics(alert_msg)
 
                     except Exception as e:
                         logger.warning(
