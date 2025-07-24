@@ -37,3 +37,9 @@ export const fetchPredictStatus = async (taskId) => {
   const response = await axios.get(`${BASE_URL}/predict/future/status/${taskId}`)
   return response.data
 }
+
+
+export async function fetchPartialPredictStatus(taskId) {
+  const response = await axios.get(`${BASE_URL}/predict/future/partial_status/${taskId}`);
+  return response.data;
+}

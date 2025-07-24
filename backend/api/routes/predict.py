@@ -20,12 +20,18 @@ from api.metrics import (
     predict_success_total,
     predict_failure_total,
 )
+from src.utils.redis import redis_client
 
 from celery.result import AsyncResult
 from celery_worker import celery_app
-
+import json
 
 logger = logging.getLogger(__name__)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
 router = APIRouter()
 
@@ -105,6 +111,34 @@ def get_future_prediction_status(task_id: str):
         return {"task_id": task_id, "status": "running"}
     elif result.state == "SUCCESS":
         return {"task_id": task_id, "status": "completed", "result": result.result}
+    elif result.state == "FAILURE":
+        return {"task_id": task_id, "status": "failed", "error": str(result.result)}
+    else:
+        raise HTTPException(status_code=400, detail="Unknown task state")
+
+
+# 假設用 Redis 存累積結果，key 命名可用 task_id
+
+
+@router.get("/predict/future/partial_status/{task_id}")
+def get_partial_future_prediction(task_id: str):
+    result = AsyncResult(task_id, app=celery_app)
+
+    raw = redis_client.get(f"future_predict:{task_id}")
+    if raw:
+        predictions = json.loads(raw)
+    else:
+        predictions = []
+    print(
+        f"Checking get_partial_future_prediction for future prediction {task_id}: {predictions}"
+    )
+
+    if result.state == "PENDING":
+        return {"task_id": task_id, "status": "pending", "result": predictions}
+    elif result.state == "STARTED":
+        return {"task_id": task_id, "status": "running", "result": predictions}
+    elif result.state == "SUCCESS":
+        return {"task_id": task_id, "status": "completed", "result": predictions}
     elif result.state == "FAILURE":
         return {"task_id": task_id, "status": "failed", "error": str(result.result)}
     else:

@@ -28,7 +28,7 @@ import {
   Divider,
   Collapse,
 } from "@chakra-ui/react";
-import { fetchFuturePrediction, fetchPredictStatus } from "../api/predictions";
+import { fetchFuturePrediction, fetchPredictStatus, fetchPartialPredictStatus } from "../api/predictions";
 
 export default function FuturePredictionTab() {
   const toast = useToast();
@@ -89,17 +89,30 @@ export default function FuturePredictionTab() {
   };
 
   useEffect(() => {
-    if (!polling || !taskId) return;
+  if (!polling || !taskId) return;
 
-    const interval = setInterval(async () => {
-      try {
-        const data = await fetchPredictStatus(taskId);
-        console.log("輪詢結果:", data);
-        setStatus(data.status || "未知狀態");
+  const interval = setInterval(async () => {
+    try {
+      const data = await fetchPartialPredictStatus(taskId); // 從後端拿部分結果
 
+      setStatus(data.status || "未知狀態");
+
+      // 新增部分結果，避免重複加
+      if (data.result && data.result.length > 0) {
+        setPredictions((prev) => {
+          // 取出新資料，從 data.result 跟 prev 比較，避免重複
+          // 假設資料是累積且排序好的，可用 slice
+          if (data.result.length > prev.length) {
+            return [...prev, ...data.result.slice(prev.length)];
+          } else {
+            return prev;
+          }
+        });
+      }
+
+      if (data.status === "completed" || data.status === "failed") {
+        setPolling(false);
         if (data.status === "completed") {
-          setPredictions(data.result.predictions || []);
-          setPolling(false);
           toast({
             title: "預測完成",
             description: "未來股價預測已完成",
@@ -107,9 +120,8 @@ export default function FuturePredictionTab() {
             duration: 3000,
             isClosable: true,
           });
-        } else if (data.status === "failed") {
+        } else {
           setError(data.error || "任務失敗");
-          setPolling(false);
           toast({
             title: "預測失敗",
             description: data.error || "任務失敗",
@@ -118,22 +130,22 @@ export default function FuturePredictionTab() {
             isClosable: true,
           });
         }
-      } catch (e) {
-        console.error("查詢狀態錯誤", e);
-        setError(e.message);
-        setPolling(false);
-        toast({
-          title: "查詢狀態錯誤",
-          description: e.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       }
-    }, 3000);
+    } catch (e) {
+      setError(e.message);
+      setPolling(false);
+      toast({
+        title: "查詢狀態錯誤",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, 3000);
 
-    return () => clearInterval(interval);
-  }, [polling, taskId, toast]);
+  return () => clearInterval(interval);
+}, [polling, taskId, toast]);
 
   return (
     <Box maxW="900px" mx="auto">
