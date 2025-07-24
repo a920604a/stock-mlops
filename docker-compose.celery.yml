@@ -1,0 +1,69 @@
+services:
+  celery_train:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: celery_train
+    command: celery -A celery_worker.celery_app worker -Q train_queue -n worker.train@%h --loglevel=info --events
+    depends_on:
+      - redis
+      - backend1
+      - backend2
+    environment:
+      DATABASE_URL: postgresql://user:password@model_meta_db:5432/stocks
+      REDIS_HOST: redis
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_PASSWORD:
+      CLICKHOUSE_DB: default
+      AWS_ACCESS_KEY_ID: mlflow
+      AWS_SECRET_ACCESS_KEY: mlflow123
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      PROMETHEUS_MULTIPROC_DIR: /tmp/celery_metrics
+    volumes:
+      - ./backend:/app
+    networks:
+      - monitor-net
+
+  celery_predict:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: celery_predict
+    command: celery -A celery_worker.celery_app worker -Q predict_queue -n worker.predict@%h --loglevel=info --events
+    depends_on:
+      - redis
+      - backend1
+      - backend2
+    environment:
+      DATABASE_URL: postgresql://user:password@model_meta_db:5432/stocks
+      REDIS_HOST: redis
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_PASSWORD:
+      CLICKHOUSE_DB: default
+      AWS_ACCESS_KEY_ID: mlflow
+      AWS_SECRET_ACCESS_KEY: mlflow123
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      PROMETHEUS_MULTIPROC_DIR: /tmp/celery_metrics
+    volumes:
+      - ./backend:/app
+    networks:
+      - monitor-net
+
+  flower:
+    image: mher/flower:0.9.7
+    container_name: flower
+    command: flower --broker=redis://redis:6379/0 --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    external: true

@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LISTENER_NAME_CONTROLLER_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - monitor-net
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      # 若有 SASL/SSL 等安全需求，可再加上 *_PROPERTIES_* 參數
+      # - KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL=SASL_PLAINTEXT
+      # - KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM=SCRAM-SHA-512
+      # - KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.scram.ScramLoginModule required username="user" password="pass";
+      - DYNAMIC_CONFIG_ENABLED=true # 可選，允許於 UI 動態新增集群
+      # （可選）開啟簡單登入保護
+      - KAFKA_UI_AUTH_USERNAME=admin
+      - KAFKA_UI_LOGIN_PTYPE=LOGIN_FORM
+      - KAFKA_UI_LOGIN_ASSWORD=admin
+    ports:
+      - "8082:8080"
+    depends_on:
+      - kafka
+    networks:
+      - monitor-net
+  metrics_publisher:
+    build:
+      context: ./metrics_publisher
+      dockerfile: ../Dockerfile.metrics_publisher
+    container_name: metrics_publisher
+    depends_on:
+      - kafka
+      - backend1
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PROMETHEUS_ENDPOINT: http://backend1:8000/metrics
+    networks:
+      - monitor-net
+  ws_monitor:
+    build:
+      context: ./ws_monitor
+      dockerfile: ../Dockerfile.ws_monitor
+    container_name: ws_monitor
+    ports:
+      - "8010:8000"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_PASSWORD:
+      CLICKHOUSE_DB: default
+    volumes:
+      - ./ws_monitor:/app
+    depends_on:
+      - kafka
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    external: true

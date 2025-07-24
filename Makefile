@@ -1,61 +1,179 @@
-# ========== 參數與變數 ==========
-DOCKER_COMPOSE = docker compose
-DOCKER_COMPOSE_MONITOR = docker compose -f docker-compose.monitor.yml
+# ========================
+# Global Config & Variables
+# ========================
 
-TRAIN_BACKEND := backend1
-PREDICT_BACKEND := backend2
+DOCKER_COMPOSE            = docker compose
+COMPOSE_DB                = docker compose -f docker-compose.database.yml
+COMPOSE_KAFKA             = docker compose -f docker-compose.kafka.yml
+COMPOSE_BACKEND           = docker compose -f docker-compose.backend.yml
+COMPOSE_FRONTEND          = docker compose -f docker-compose.frontend.yml
+COMPOSE_MONITOR           = docker compose -f docker-compose.monitor.yml
 
-FRONTEND_DIR := frontend
-DB_DIRS := db/mlflow_db db/oltp db/model_meta_db db/olap
-DATA_DIRS := data/mlflow_artifacts data/prometheus_data data/minio
+NETWORK_NAME              = monitor-net
 
-LOCAL_TAG := $(shell date +"%Y-%m-%d-%H-%M")
-LOCAL_IMAGE_NAME := stock-mlops-backend:${LOCAL_TAG}
+TRAIN_BACKEND             = backend1
+PREDICT_BACKEND           = backend2
+BACKENDS                  = $(TRAIN_BACKEND) $(PREDICT_BACKEND)
+
+FRONTEND_DIR              = frontend
+DB_DIRS                   = db/mlflow_db db/oltp db/model_meta_db db/olap
+DATA_DIRS                 = data/mlflow_artifacts data/prometheus_data data/minio
+
+LOCAL_TAG                 = $(shell date +"%Y-%m-%d-%H-%M")
+LOCAL_IMAGE_NAME          = stock-mlops-backend:${LOCAL_TAG}
 
 MAKEFLAGS += --no-builtin-rules
 
-.PHONY: help up down logs clean ingest test build init integration_test quality_checks monitor reset  \
-        setup retrain pipeline ci restart publish frontend-dev frontend-build \
-        monitor-up monitor-down monitor-logs
+.PHONY: help init init-soft net-create clean reset restart \
+        up-core up-db up-kafka up-backend up-frontend up-monitor \
+        down-all down-core down-db down-kafka down-backend down-frontend down-monitor \
+        logs-backend logs-monitor logs-db logs-kafka logs-frontend \
+        setup build all up-all ingest test train predict monitor \
+        integration_test quality_checks pipeline retrain ci publish \
+        frontend-dev frontend-build \
+        monitor-up monitor-down monitor-logs dev-setup
 
-# ========== 指令說明 ==========
+# ========================
+# Help
+# ========================
 help:
 	@echo "📦 可用指令如下："
-	@grep -E '^[a-zA-Z\-_]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?##"} {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_\-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?##"} {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 
-# ========== 初始化與清除 ==========
+# ========================
+# Init / Clean
+# ========================
 
-init: ## 初始化資料夾
+net-create: ## 建立共用 Docker network（若不存在）
+	@echo "🔌 檢查/建立 network $(NETWORK_NAME)"
+	@if ! docker network inspect $(NETWORK_NAME) >/dev/null 2>&1; then \
+		docker network create $(NETWORK_NAME) --driver bridge; \
+		echo "✅ 建立 $(NETWORK_NAME) 完成"; \
+	else \
+		echo "✅ $(NETWORK_NAME) 已存在"; \
+	fi
+
+init: ## 初始化資料夾（含 network）
+	$(MAKE) net-create
 	mkdir -p $(DB_DIRS)
 	mkdir -p $(DATA_DIRS)
 
-clean: ## 清除容器與資料夾
-	sudo $(DOCKER_COMPOSE) down --volumes
+init-soft: ## 僅建立 network（不建立資料夾）
+	$(MAKE) net-create
+
+clean: ## 清除所有容器與資料夾（小心會刪資料）
+	$(MAKE) down-all
 	sudo rm -rf $(DB_DIRS) $(DATA_DIRS)
 	rm -rf $(FRONTEND_DIR)/package-lock.json $(FRONTEND_DIR)/node_modules
 
-reset: ## 清除並重新啟動所有服務
-	sudo $(MAKE) clean
+reset: ## 清除並重新啟動核心（DB + Kafka + Backend）
+	@echo "🧹 reset 核心服務 (DB/Kafka/Backend)"
+	$(MAKE) down-core
 	$(MAKE) init
-	$(DOCKER_COMPOSE) up -d --force-recreate
-	@echo "🧹 清除完成並重新建置所有 image 與啟動容器"
+	$(MAKE) up-core
+	@echo "✅ reset 完成"
 
 restart: ## 快速重啟 backend 容器（不重建 image）
-	$(DOCKER_COMPOSE) restart $(TRAIN_BACKEND) $(PREDICT_BACKEND)
+	$(COMPOSE_BACKEND) restart $(BACKENDS)
 
-# ========== 容器操作 ==========
+# ========================
+# Up / Down (分組控制)
+# ========================
 
-up: ## 啟動所有服務（build）
-	$(DOCKER_COMPOSE) up --build -d
-	@echo "✅ 所有服務已啟動"
+# --- UP ---
 
-down: ## 關閉所有服務
-	$(DOCKER_COMPOSE) down
+up-db: ## 啟動資料庫 (Redis/Postgres/ClickHouse/MinIO/MLflow-DB ...)
+	$(COMPOSE_DB) up -d
 
-logs: ## 查看 backend 服務日誌
-	$(DOCKER_COMPOSE) logs -f backend
+up-kafka: ## 啟動 Kafka
+	$(COMPOSE_KAFKA) up -d
 
-# ========== 專案功能 ==========
+up-backend: ## 啟動後端與 Celery（需 DB & Kafka 已起來）
+	$(COMPOSE_BACKEND) up -d
+
+up-frontend: ## 啟動前端與 UI
+	$(COMPOSE_FRONTEND) up -d
+
+up-monitor: ## 啟動監控模組（Prometheus, Grafana, exporters...）
+	$(COMPOSE_MONITOR) up -d
+
+# up-core: up-db up-kafka up-backend ## 依序啟動核心服務（DB → Kafka → Backend）
+up-core:
+	docker compose -f docker-compose.database.yml \
+	               -f docker-compose.celery.yml \
+				   -f docker-compose.kafka.yml \
+	               -f docker-compose.backend.yml \
+	               up -d
+
+up-all: ## 依序啟動所有服務(核心 + 前端 + 監控)
+	$(MAKE) up-core
+	$(MAKE) up-frontend
+	$(MAKE) up-monitor
+	@echo "🚀 所有服務已啟動"
+
+# --- DOWN ---
+
+down-db:
+	$(COMPOSE_DB) down
+
+down-kafka:
+	$(COMPOSE_KAFKA) down
+
+down-backend:
+	$(COMPOSE_BACKEND) down
+
+down-frontend:
+	$(COMPOSE_FRONTEND) down
+
+down-monitor:
+	$(COMPOSE_MONITOR) down
+
+down-core:
+	docker compose -f docker-compose.database.yml \
+	               -f docker-compose.celery.yml \
+	               -f docker-compose.kafka.yml \
+	               -f docker-compose.backend.yml \
+	               down
+
+
+down-all: ## 關閉所有服務（Monitor → Frontend → Backend → Kafka → DB）
+	$(MAKE) down-monitor || true
+	$(MAKE) down-frontend || true
+	$(MAKE) down-backend || true
+	$(MAKE) down-kafka || true
+	$(MAKE) down-db || true
+	@echo "🛑 所有服務已關閉"
+
+# ========================
+# Logs
+# ========================
+
+logs-backend: ## 追 backend1 & backend2 日誌
+	$(COMPOSE_BACKEND) logs -f $(BACKENDS)
+
+logs-monitor: ## 追監控模組日誌
+	$(COMPOSE_MONITOR) logs -f
+
+logs-db:
+	$(COMPOSE_DB) logs -f
+
+logs-kafka:
+	$(COMPOSE_KAFKA) logs -f
+
+logs-frontend:
+	$(COMPOSE_FRONTEND) logs -f
+
+# 與你原本兼容的別名
+monitor-up: up-monitor ## 啟動監控模組（Prometheus, Grafana 等）
+	@echo "📈 監控模組已啟動"
+
+monitor-down: down-monitor ## 關閉監控模組
+
+monitor-logs: logs-monitor ## 查看監控模組日誌
+
+# ========================
+# Project Ops
+# ========================
 
 frontend-dev: ## 啟動前端開發模式
 	cd $(FRONTEND_DIR) && npm install && npm run dev
@@ -68,62 +186,57 @@ ingest: ## 執行資料收集腳本
 
 train: ## 執行模型訓練
 	@echo "🚀 執行模型訓練..."
-	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) python src/model_training/train.py || (echo "❌ 訓練失敗"; exit 1)
+	$(COMPOSE_BACKEND) exec $(TRAIN_BACKEND) python src/model_training/train.py || (echo "❌ 訓練失敗"; exit 1)
 
 predict: ## 執行模型推論
-	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/inference/predict.py
-
+	$(COMPOSE_BACKEND) exec $(PREDICT_BACKEND) python src/inference/predict.py
 
 monitor: ## 模擬監控
-	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) python src/inference/simulate_predict_days.py --start-date 2025-06-01 --days 15 --ticker AAPL --exchange US --base-url http://localhost:8000
-
+	$(COMPOSE_BACKEND) exec $(PREDICT_BACKEND) python src/inference/simulate_predict_days.py --start-date 2025-06-01 --days 15 --ticker AAPL --exchange US --base-url http://localhost:8000
 	@echo "📊 模擬監控已完成"
 
-# ========== 測試與品質檢查 ==========
+# ========================
+# Tests & Quality
+# ========================
 
-test: ## 執行單元測試
-	$(DOCKER_COMPOSE) exec $(TRAIN_BACKEND) pytest -v
+test: ## 單元測試
+	$(COMPOSE_BACKEND) exec $(TRAIN_BACKEND) pytest -v
 
 quality_checks: ## 程式碼風格檢查（isort / black / pylint）
 	isort .
 	black .
 	pylint backend/src || true
 
-integration_test: ## 執行整合測試
-# 	LOCAL_IMAGE_NAME=$(LOCAL_IMAGE_NAME) bash backend/integraton-test/run.sh
-	$(DOCKER_COMPOSE) exec $(PREDICT_BACKEND) pytest integraton-test/test_predict_api.py
-
-# ========== 組合流程 ==========
-
-setup: clean init up ingest ## 一鍵啟動專案
-
-build: init up ## 建置與啟動
-
-all: init up ingest ## 同 setup，但命名與傳統相符
-
-up-all: ## 啟動所有服務 + 監控模組
-	$(DOCKER_COMPOSE) up -d
-	$(DOCKER_COMPOSE_MONITOR) up -d
-	@echo "🚀 主系統與監控模組已全部啟動"
+integration_test: ## 整合測試
+	$(COMPOSE_BACKEND) exec $(PREDICT_BACKEND) pytest integraton-test/test_predict_api.py
 
 pipeline: quality_checks test train predict ## 模型完整開發流程
 
 retrain: train predict ## 訓練與預測
 
-ci: quality_checks test integration_test ## CI/CD 使用的檢查與測試流程
+ci: quality_checks test integration_test ## CI/CD 檢查與測試流程
 
 publish: quality_checks build ## 品質檢查與建置後發布
 	LOCAL_IMAGE_NAME=$(LOCAL_IMAGE_NAME) bash scripts/publish.sh
 
+# ========================
+# High-level Flows
+# ========================
 
-monitor-up: ## 啟動監控模組（Prometheus, Grafana 等）
-	$(DOCKER_COMPOSE_MONITOR) up -d
-	@echo "📈 監控模組已啟動"
+setup: clean init up-all ingest ## 一鍵啟動整套（含監控）
 
-monitor-down: ## 關閉監控模組
-	$(DOCKER_COMPOSE_MONITOR) down
+build: init up-core ## 核心建置與啟動
 
-monitor-logs: ## 查看監控模組日誌
-	$(DOCKER_COMPOSE_MONITOR) logs -f
+all: init up-core ingest ## 與傳統 all 同義
 
-dev-setup: monitor-down reset ingest monitor-up
+dev-setup: ## 本地開發快速重來（停監控 → reset 核心 → ingest → 啟監控）
+	$(MAKE) monitor-down
+	$(MAKE) reset
+	$(MAKE) ingest
+	$(MAKE) up-frontend
+	$(MAKE) monitor-up
+
+
+# make up-core
+# make up-frontend
+# make up-monitor

@@ -27,6 +27,17 @@
 ---
 
 ## services
+
+| 分類        | 包含服務                                                                                                        | 建議檔案名稱                        |
+| --------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **監控**    | prometheus、grafana、node-exporter、cadvisor、blackbox-exporter、celery\_exporter、metrics\_publisher、celery_exporter | `docker-compose.monitor.yml`  |
+| **前端**    | nginx                                                                                         | `docker-compose.frontend.yml` |
+| **後端**    | mlflow、backend1、backend2                   | `docker-compose.backend.yml`  |
+| **資料庫**   | redis、raw\_db、model\_meta\_db、mlflow-db、clickhouse、minio 、init-minio                                           | `docker-compose.database.yml` |
+| **Kafka** | kafka、 kafka-ui、metrics\_publisher、ws_monitor                                                                                                   | `docker-compose.kafka.yml`    |
+| **Celery** | celery\_train、celery\_predict、flower                                                                                                       | `docker-compose.celery.yml`    |
+
+
 frontend
 - http://localhost:5173
 - http://localhost

@@ -1,0 +1,94 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - monitor-net
+
+  raw_db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: stocks
+    ports:
+      - "5412:5432"
+    volumes:
+      - ./db/oltp:/var/lib/postgresql/data
+    networks:
+      - monitor-net
+
+  model_meta_db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: stocks
+    ports:
+      - "5411:5432"
+    volumes:
+      - ./db/model_meta_db:/var/lib/postgresql/data
+      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - monitor-net
+
+  mlflow-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
+    ports:
+      - "5422:5432"
+    volumes:
+      - ./db/mlflow_db:/var/lib/postgresql/data
+    networks:
+      - monitor-net
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.3
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./db/olap/clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    networks:
+      - monitor-net
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9111:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: mlflow
+      MINIO_ROOT_PASSWORD: mlflow123
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - monitor-net
+
+  init-minio:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: /bin/sh
+    command: /scripts/init_minio.sh
+    environment:
+      MINIO_ROOT_USER: mlflow
+      MINIO_ROOT_PASSWORD: mlflow123
+    volumes:
+      - ./scripts/init_minio.sh:/scripts/init_minio.sh:ro
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    external: true

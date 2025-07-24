@@ -1,0 +1,82 @@
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    depends_on:
+      - mlflow-db
+    environment:
+      AWS_ACCESS_KEY_ID: mlflow
+      AWS_SECRET_ACCESS_KEY: mlflow123
+      MLFLOW_ARTIFACT_ROOT: s3://mlflow-artifacts
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri postgresql://mlflow:mlflow@mlflow-db:5432/mlflow
+      --default-artifact-root s3://mlflow-artifacts
+    ports:
+      - "5010:5000"
+    networks:
+      - monitor-net
+
+  backend1:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: backend1
+    ports:
+      - "8001:8000"
+    depends_on:
+      - raw_db
+      - redis
+      - mlflow
+      - kafka
+    environment:
+      DATABASE_URL: postgresql://user:password@model_meta_db:5432/stocks
+      REDIS_HOST: redis
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_PASSWORD:
+      CLICKHOUSE_DB: default
+      AWS_ACCESS_KEY_ID: mlflow
+      AWS_SECRET_ACCESS_KEY: mlflow123
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    volumes:
+      - ./backend:/app
+    networks:
+      - monitor-net
+
+  backend2:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: backend2
+    ports:
+      - "8002:8000"
+    depends_on:
+      - raw_db
+      - redis
+      - mlflow
+      - kafka
+    environment:
+      DATABASE_URL: postgresql://user:password@model_meta_db:5432/stocks
+      REDIS_HOST: redis
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_PASSWORD:
+      CLICKHOUSE_DB: default
+      AWS_ACCESS_KEY_ID: mlflow
+      AWS_SECRET_ACCESS_KEY: mlflow123
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    volumes:
+      - ./backend:/app
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    external: true

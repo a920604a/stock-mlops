@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    # depends_on:
+    #   - backend1
+    #   - backend2
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    external: true
