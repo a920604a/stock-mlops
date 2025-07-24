@@ -167,22 +167,6 @@ services:
     networks:
       - monitor-net
 
-  celery_exporter: # 新增的 Celery Prometheus Exporter 服務
-    image: ghcr.io/danihodovic/celery-exporter:latest # 使用預構建的 Docker 鏡像
-    container_name: celery_exporter
-    ports:
-      - "8000:9540" # 將容器的 8000 端口映射到主機的 8000 端口
-    environment:
-      - CE_BROKER_URL=redis://redis:6379/0 # 連接到 Celery broker (Redis 服務)
-      - CE_LISTEN_PORT=8000 # Exporter 監聽的端口
-      - CE_ENABLE_EVENTS=true # 啟用事件監聽
-    depends_on:
-      - redis # 依賴於 Redis broker
-      - celery_train
-      - celery_predict # 依賴於  worker 確保其啟動並發送事件
-    networks:
-      - monitor-net
-
   mlflow:
     build:
       context: .
@@ -312,6 +296,45 @@ services:
     networks:
       - monitor-net
 
+  celery_exporter: # 新增的 Celery Prometheus Exporter 服務
+    image: ghcr.io/danihodovic/celery-exporter:latest # 使用預構建的 Docker 鏡像
+    container_name: celery_exporter
+    ports:
+      - "8000:9540" # 將容器的 8000 端口映射到主機的 8000 端口
+    environment:
+      - CE_BROKER_URL=redis://redis:6379/0 # 連接到 Celery broker (Redis 服務)
+      - CE_LISTEN_PORT=8000 # Exporter 監聽的端口
+      - CE_ENABLE_EVENTS=true # 啟用事件監聽
+    depends_on:
+      - redis # 依賴於 Redis broker
+      - celery_train
+      - celery_predict # 依賴於  worker 確保其啟動並發送事件
+    networks:
+      - monitor-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      # 若有 SASL/SSL 等安全需求，可再加上 *_PROPERTIES_* 參數
+      # - KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL=SASL_PLAINTEXT
+      # - KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM=SCRAM-SHA-512
+      # - KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.scram.ScramLoginModule required username="user" password="pass";
+      - DYNAMIC_CONFIG_ENABLED=true # 可選，允許於 UI 動態新增集群
+      # （可選）開啟簡單登入保護
+      - KAFKA_UI_AUTH_USERNAME=admin
+      - KAFKA_UI_LOGIN_PTYPE=LOGIN_FORM
+      - KAFKA_UI_LOGIN_ASSWORD=admin
+    ports:
+      - "8082:8080"
+    depends_on:
+      - kafka
+    networks:
+      - monitor-net
+
 networks:
   monitor-net:
-    external: false
+    name: monitor-net
+    driver: bridge

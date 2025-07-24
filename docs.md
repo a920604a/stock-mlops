@@ -26,6 +26,100 @@
 
 ---
 
+## services
+frontend
+- http://localhost:5173
+- http://localhost
+backend
+- http://localhost:8001/docs
+- http://localhost:8002/docs as kafka producer
+model experience
+- http://localhost:5010
+minIO storage
+- http://localhost:9001
+
+celery
+- flower http://localhost:5555  監控和管理 Celery 任務的 Web UI 工具
+- celery_predict as Worker
+- celery_train as Worker
+- Redis:6379/0 as broker  Redis 為任務佇列中介
+- Redis:6379/1 as backend 追蹤任務狀態用
+
+redis
+- 主要用途：作為 Celery 的 任務隊列 broker。
+- 間接用途：提供 Flower 與 Celery Exporter 監控 Celery 狀態的訊息來源。
+
+ 
+kafka
+- backend2 as kafka Producer  發送消息到 Kafka Topic 的客戶端應用程式
+- metrics_publisher as kafka Producer  發送消息到 Kafka Topic 的客戶端應用程式
+- kafka:9092  Kafka Broker
+- ws_monitor http://localhost:8010/docs  Consumer
+- http://localhost:8082/ kafka ui
+
+
+DB
+- postgres:5411 model_meta_db
+- postgres:5412 raw_db
+- postgres:5422 mlflow-db
+- redis:6379 
+- clickhouse 
+- http://localhost:8123/play
+- http://localhost:8123/dashboard
+
+MONITOR
+- celery_exporter
+- http://localhost:9090
+- grafana http://localhost:3002/ 
+- node-exporter http://localhost:9100/
+- cadvisor http://localhost:8080
+- blackbox-exporter http://localhost:9115
+
+
+| 特性     | **Celery**       | **Kafka**               |
+| ------ | ---------------- | ----------------------- |
+| 核心定位   | 任務隊列（Task Queue） | 流處理（Streaming Platform） |
+| 吞吐量    | 中等（受 broker 限制）  | 極高                      |
+| 任務回傳   | 支援               | 無                       |
+| 適合場景   | 短任務、批次、排程        | 高頻事件、實時流                |
+| Broker | RabbitMQ、Redis   | Kafka Cluster           |
+| 保留訊息   | 不常用（完成即刪除）       | 可長期保留並回放                |
+
+> Client → Broker → Worker → Result Backend
+> Producer → Kafka Broker (Topic + Partition) → Consumer Group
+
+
+## API
+- GET http://localhost:8001/api/predict/
+
+model
+- GET /api/models/
+- POST /api/models/
+- GET /api/models/{model_id}
+- DELETE /api/models/{model_id}
+- GET /api/mlflow/models (deprecation)
+- GET /api/mlflow/{model_id}
+
+train
+- POST /api/train
+  - backend1 celery task -> redis Broker -> celery_train worker -> backend1
+- GET /api/train/status/{task_id}
+
+predict
+- GET /api/predict/ 預測紀錄
+- POST /api/predict/ 單筆欸測
+  - backend2 as kafka producer -> kafka broker -> ws_monitor as kafka consumer
+
+- POST /api/predict/future/ 未來多天預測 
+  - backend2 celery task -> redis Broker -> celery_predict worker -> backend2
+- GET /api/predict/future/status/{task_id} 
+- GET /api/predict/future/partial_status/{task_id}
+
+- GET /metrics
+  - backend1 -> prometheus
+  - metrics_publisher as kafka producer -> kafka broker -> ws_monitor as kafka consumer
+datasets
+- GET /api/datasets
 ## 🔁 工作流程與資料流說明
 
 ```mermaid
