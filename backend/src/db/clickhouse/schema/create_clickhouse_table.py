@@ -1,6 +1,5 @@
 import os
 
-
 from clickhouse_driver import Client
 
 

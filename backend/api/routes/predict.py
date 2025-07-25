@@ -1,30 +1,28 @@
 # api/routes/predict.py
 
-from api.schemas.predict_request import FuturePredictResponse, FuturePredictRequest
-from fastapi import APIRouter, HTTPException
-from src.inference.predict import Predictor
-from api.schemas.predict_request import (
-    PredictRequest,
-    PredictResponse,
-    PredictionResponse,
-)
+import asyncio
+import json
+import logging
 from datetime import datetime, timedelta
 from typing import List
-from src.db.clickhouse.reader import read_predictions
-from api.kafka_producer import send_prediction_to_kafka
-import asyncio
-import logging
-import pandas as pd
-from tasks.predict_tasks import simulate_future_predictions
-from api.metrics import (
-    predict_success_total,
-    predict_failure_total,
-)
-from src.utils.redis import redis_client
 
+import pandas as pd
+from api.kafka_producer import send_prediction_to_kafka
+from api.metrics import predict_failure_total, predict_success_total
+from api.schemas.predict_request import (
+    FuturePredictRequest,
+    FuturePredictResponse,
+    PredictionResponse,
+    PredictRequest,
+    PredictResponse,
+)
 from celery.result import AsyncResult
 from celery_worker import celery_app
-import json
+from fastapi import APIRouter, HTTPException
+from src.db.clickhouse.reader import read_predictions
+from src.inference.predict import Predictor
+from src.utils.redis import redis_client
+from tasks.predict_tasks import simulate_future_predictions
 
 logger = logging.getLogger(__name__)
 

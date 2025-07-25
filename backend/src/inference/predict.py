@@ -4,12 +4,12 @@ from typing import Optional
 
 import mlflow.sklearn
 import pandas as pd
+from src.db.clickhouse.base_clickhouse import client  # 你已有的 ClickHouse client
 from src.db.clickhouse.reader import (
     get_close_price,
     get_last_available_date,
     load_stock_data,
 )
-from src.db.clickhouse.base_clickhouse import client  # 你已有的 ClickHouse client
 from src.db.postgres.crud.model_available import list_models
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,6 @@
-import json
 import asyncio
+import json
+
 from aiokafka import AIOKafkaProducer
 from aiokafka.errors import KafkaConnectionError
 

@@ -1,8 +1,9 @@
 import asyncio
-import aiohttp
 import json
-import time
 import logging
+import time
+
+import aiohttp
 from aiokafka import AIOKafkaProducer
 
 PROMETHEUS_ENDPOINT = "http://backend1:8000/metrics"  # backend 暴露的 /metrics

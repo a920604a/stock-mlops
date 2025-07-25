@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List, Literal
 from datetime import date
+from typing import List, Literal
 
 FEATURE_COLUMNS = [
     "Open",

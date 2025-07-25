@@ -1,32 +1,29 @@
 import datetime
-import time
 import logging
+import time
+
 import pandas as pd
-from prefect import task, flow
-from evidently import Report
-from evidently import Dataset
-from evidently import DataDefinition
-from evidently import Regression
+from evidently import DataDefinition, Dataset, Regression, Report
 
 # 從 evidently.metrics 匯入適合指標
 from evidently.metrics import (
-    DatasetMissingValueCount,
-    MissingValueCount,
-    DriftedColumnsCount,
-    ValueDrift,
     MAE,
     RMSE,
-    MinValue,
-    MaxValue,
-    MedianValue,
-    MeanValue,
-    StdValue,
-    QuantileValue,
-    DuplicatedRowCount,
     CategoryCount,
+    DatasetMissingValueCount,
+    DriftedColumnsCount,
+    DuplicatedRowCount,
+    MaxValue,
+    MeanValue,
+    MedianValue,
+    MinValue,
+    MissingValueCount,
+    QuantileValue,
+    StdValue,
     UniqueValueCount,
+    ValueDrift,
 )
-
+from prefect import flow, task
 
 logger = logging.getLogger("monitor")
 logger.setLevel(logging.INFO)

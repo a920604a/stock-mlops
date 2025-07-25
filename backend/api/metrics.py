@@ -1,6 +1,5 @@
 from prometheus_client import Counter, Histogram
 
-
 train_success_total = Counter(
     "train_success_total", "Number of successful training jobs"
 )

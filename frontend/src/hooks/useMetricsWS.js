@@ -20,7 +20,7 @@ export function useMetricsWS(maxPoints = 50) {
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log("Received metrics data:", data);
+            // console.log("Received metrics data:", data);
             const timeLabel = new Date(data.timestamp * 1000).toLocaleTimeString();
             const m = data.metrics || {};
 

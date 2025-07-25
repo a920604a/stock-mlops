@@ -1,8 +1,9 @@
 # api/routes/etl.py
-from fastapi import APIRouter, HTTPException
 from typing import List
-from workflows.etl_runner import trigger_etl_flow
+
 from api.schemas.dataset_request import TickerExchange
+from fastapi import APIRouter, HTTPException
+from workflows.etl_runner import trigger_etl_flow
 
 router = APIRouter()
 

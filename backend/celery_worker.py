@@ -1,6 +1,7 @@
 # celery_worker.py
-from celery import Celery
 import os
+
+from celery import Celery
 from celery_prometheus import add_prometheus_option  # 新增導入
 
 redis_host = os.getenv("REDIS_HOST", "localhost")

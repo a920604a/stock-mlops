@@ -1,18 +1,21 @@
 # simulate_predict_30_days.py
 
 import asyncio
-import httpx
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
+
 import click
+import httpx
 
 BASE_URL = "http://localhost:8000"  # 可透過參數覆寫
 
 
-async def post_prediction_for_day(client: httpx.AsyncClient, target_date: date, ticker: str, exchange: str):
+async def post_prediction_for_day(
+    client: httpx.AsyncClient, target_date: date, ticker: str, exchange: str
+):
     payload = {
         "ticker": ticker,
         "exchange": exchange,
-        "target_date": target_date.isoformat()
+        "target_date": target_date.isoformat(),
     }
     try:
         response = await client.post(f"{BASE_URL}/api/predict/", json=payload)

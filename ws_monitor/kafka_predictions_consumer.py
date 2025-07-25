@@ -1,21 +1,22 @@
 import asyncio
 import json
 import logging
+
 import pandas as pd
 from aiokafka import AIOKafkaConsumer
-from websocket_predictions import broadcast_predictions
-from db import insert_prediction_to_clickhouse, insert_alert_to_clickhouse
 from evidently import Report
 from evidently.metrics import (
     DatasetMissingValueCount,
-    MissingValueCount,
-    StdValue,
-    QuantileValue,
     DuplicatedRowCount,
     MeanValue,
+    MissingValueCount,
+    QuantileValue,
+    StdValue,
 )
 from websocket_anomalies import broadcast_alert
+from websocket_predictions import broadcast_predictions
 
+from db import insert_alert_to_clickhouse, insert_prediction_to_clickhouse
 
 # === Logging ===
 logging.basicConfig(

@@ -1,18 +1,18 @@
-from unittest.mock import MagicMock, patch
 from datetime import datetime
-
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
+from src.train_config import TrainConfig
+
 from backend.src.model_training.train import (
     log_model_to_mlflow,
     prepare_features,
-    train_test_split,
-    train_model,
     train_ml_model,
+    train_model,
+    train_test_split,
 )
-from src.train_config import TrainConfig
 
 
 @pytest.fixture

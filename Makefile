@@ -175,7 +175,7 @@ monitor: ## 模擬監控
 # ========================
 
 test: ## 單元測試
-	$(DOCKER_COMPOSE) $(COMPOSE_CORE) exec $(TRAIN_BACKEND) pytest -v
+	$(DOCKER_COMPOSE) $(COMPOSE_CORE) exec $(TRAIN_BACKEND) pytest -v tests/test_train.py
 
 quality_checks: ## 程式碼風格檢查（isort / black / pylint）
 	isort .

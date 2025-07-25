@@ -1,11 +1,10 @@
 # baend/src/db/postgres/base_postges.py
 import os
-from sqlalchemy.orm import Session
 from contextlib import contextmanager
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 load_dotenv()
 

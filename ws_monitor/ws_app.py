@@ -1,13 +1,13 @@
-from fastapi import FastAPI
-import logging
 import asyncio
+import logging
 
-from websocket_predictions import websocket_predictions_endpoint
-from websocket_metrics import websocket_metrics_endpoint
-from websocket_anomalies import websocket_alerts_endpoint
-from kafka_predictions_consumer import kafka_predictions_consumer_loop
-from kafka_metrics_consumer import kafka_metrics_consumer_loop
 from create_clickhouse_table import create_clickhouse_table
+from fastapi import FastAPI
+from kafka_metrics_consumer import kafka_metrics_consumer_loop
+from kafka_predictions_consumer import kafka_predictions_consumer_loop
+from websocket_anomalies import websocket_alerts_endpoint
+from websocket_metrics import websocket_metrics_endpoint
+from websocket_predictions import websocket_predictions_endpoint
 
 app = FastAPI()
 logger = logging.getLogger(__name__)

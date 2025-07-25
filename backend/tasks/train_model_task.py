@@ -1,17 +1,15 @@
 # tasks/train_model_task.py
+import logging
 from datetime import datetime
+
 from celery_worker import celery_app
+from src.db.postgres.models.models import ModelMetadata  # ORM 類別
 from src.model_training.train import train_ml_model
 from src.train_config import TrainConfig
-from src.db.postgres.models.models import ModelMetadata  # ORM 類別
-import logging
 
 logger = logging.getLogger(__name__)  # 建立 logger
 
-from api.metrics import (
-    train_success_total,
-    train_failure_total,
-)
+from api.metrics import train_failure_total, train_success_total
 
 
 @celery_app.task(queue="train_queue")

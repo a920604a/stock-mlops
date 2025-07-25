@@ -1,12 +1,12 @@
 # api/routes/train.py
-from fastapi import APIRouter, BackgroundTasks
 import logging
-from tasks.train_model_task import train_model_task
-from fastapi import HTTPException
+
+from api.schemas.train_request import TrainRequest, TrainResponse
 from celery.result import AsyncResult
 from celery_worker import celery_app
-from api.schemas.train_request import TrainRequest, TrainResponse
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from src.db.postgres.crud.crud import get_model
+from tasks.train_model_task import train_model_task
 
 router = APIRouter()
 

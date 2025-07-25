@@ -1,6 +1,7 @@
 # src/db/clickhouse/connection_pool.py
 import threading
-from queue import Queue, Empty
+from queue import Empty, Queue
+
 from clickhouse_driver import Client
 
 

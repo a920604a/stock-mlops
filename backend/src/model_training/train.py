@@ -1,18 +1,17 @@
+import logging
+from datetime import datetime
 from typing import List
 
 import mlflow
 import mlflow.sklearn
 import pandas as pd
 import xgboost as xgb
-from datetime import datetime
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from src.db.clickhouse.reader import load_stock_data
 from src.db.postgres.crud.model_save import save_or_update_model_metadata
 from src.train_config import TrainConfig
-
-import logging
 
 logger = logging.getLogger(__name__)  # 建立 logger
 

@@ -1,9 +1,9 @@
+import logging
 from datetime import datetime
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
+
 import pandas as pd
 from src.db.clickhouse.connection_pool import clickhouse_pool
-
-import logging
 
 logger = logging.getLogger(__name__)  # 建立 logger
 

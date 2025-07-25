@@ -1,7 +1,8 @@
 from typing import List, Optional
+
+from api.schemas.model_request import ModelMetadataSchema
 from src.db.postgres.base_postgres import db_session  # 使用 context manager
 from src.db.postgres.crud.model_save import ModelMetadata
-from api.schemas.model_request import ModelMetadataSchema
 
 
 def list_models(ticker: Optional[str] = None) -> List[ModelMetadataSchema]:

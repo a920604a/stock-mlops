@@ -1,8 +1,8 @@
-from clickhouse_driver import Client
-from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
+from clickhouse_driver import Client
 
 client = Client(host="clickhouse")
 

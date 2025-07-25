@@ -1,18 +1,14 @@
 # tasks/predict_tasks.py
+import json
+import logging
 import time
 from datetime import datetime, timedelta
 
+from api.metrics import predict_failure_total, predict_success_total
 from celery_worker import celery_app
-from src.inference.predict import Predictor
 from prometheus_client import Counter
-from api.metrics import (
-    predict_success_total,
-    predict_failure_total,
-)
+from src.inference.predict import Predictor
 from src.utils.redis import redis_client  # 假設這是你的 redis client
-import json
-
-import logging
 
 logger = logging.getLogger(__name__)  # 建立 logger
 logging.basicConfig(

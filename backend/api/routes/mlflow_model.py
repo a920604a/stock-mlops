@@ -1,23 +1,24 @@
 # api/routes/mlflow_model.py
 
-from fastapi import APIRouter, HTTPException, status
-from typing import List, Dict, Any
-
 import logging
-import mlflow
-from mlflow.entities import Run
+from typing import Any, Dict, List
 
-# from api.schemas.mlflow_request import (
+import mlflow
+from fastapi import APIRouter, HTTPException, status
+from mlflow.entities import Run
 
 # )
 from src.db.postgres.crud.crud import (
-    get_model,
-    get_models,
     create_model,
-    update_model,
     delete_model,
     get_all_model_id,
+    get_model,
+    get_models,
+    update_model,
 )
+
+# from api.schemas.mlflow_request import (
+
 
 logger = logging.getLogger(__name__)
 

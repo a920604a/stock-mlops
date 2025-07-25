@@ -1,5 +1,6 @@
-from clickhouse_driver import Client
 import os
+
+from clickhouse_driver import Client
 
 
 def create_clickhouse_table():

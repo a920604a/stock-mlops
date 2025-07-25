@@ -1,10 +1,11 @@
 import datetime
 import json
 import logging
+
 import pandas as pd
-from fastapi import WebSocket, WebSocketDisconnect
 from evidently import Report
-from evidently.metrics import ValueDrift, DatasetMissingValueCount, MAE, RMSE
+from evidently.metrics import MAE, RMSE, DatasetMissingValueCount, ValueDrift
+from fastapi import WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

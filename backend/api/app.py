@@ -1,19 +1,11 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from api.routes import datasets
-from api.routes import predict
-from api.routes import train
-from api.routes import etl
-from api.routes import models
-from api.routes import mlflow_model
-from api.kafka_producer import init_kafka_producer, close_kafka_producer
-from src.db.clickhouse.schema.create_clickhouse_table import create_clickhouse_table
-
-
 import asyncio
 
-
+from api.kafka_producer import close_kafka_producer, init_kafka_producer
+from api.routes import datasets, etl, mlflow_model, models, predict, train
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
+from src.db.clickhouse.schema.create_clickhouse_table import create_clickhouse_table
 
 clients = set()
 
@@ -51,6 +43,7 @@ app.include_router(mlflow_model.router, prefix="/api", tags=["model"])
 async def startup_event():
     create_clickhouse_table()
     from asyncio import sleep
+
     from aiokafka.errors import KafkaConnectionError
 
     for attempt in range(5):

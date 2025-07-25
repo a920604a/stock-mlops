@@ -1,7 +1,8 @@
 # backend/api/schemas/model_request.py
-from pydantic import BaseModel, Field
+from datetime import date, datetime
 from typing import List, Optional
-from datetime import datetime, date
+
+from pydantic import BaseModel, Field
 
 
 # Schema for creating a new ModelMetadata entry

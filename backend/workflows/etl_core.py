@@ -1,9 +1,9 @@
 import os
 import time
 
-from clickhouse_driver import Client
 import pandas as pd
 import yfinance as yf
+from clickhouse_driver import Client
 from dotenv import load_dotenv
 from prefect import flow, task
 from sqlalchemy import create_engine

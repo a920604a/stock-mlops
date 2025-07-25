@@ -1,17 +1,15 @@
 # backend/src/db/postgres/crud.py
+from datetime import datetime
 from typing import List, Optional
-from src.db.postgres.base_postgres import db_session
+from uuid import uuid4
 
 from api.schemas.model_request import (
     ModelMetadataCreate,
-    ModelMetadataUpdate,
     ModelMetadataResponse,
     ModelMetadataSchema,
+    ModelMetadataUpdate,
 )
-
-from datetime import datetime
-from uuid import uuid4
-
+from src.db.postgres.base_postgres import db_session
 from src.db.postgres.models.models import ModelMetadata  # ORM 類別
 
 # --- CRUD Operations for ModelMetadata ---
