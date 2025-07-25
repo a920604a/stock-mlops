@@ -52,8 +52,8 @@ jobs:
       - name: Wait for all core services
         run: bash scripts/wait_for_services.sh
 
-      - name: Run ingest
-        run: make ingest
+      # - name: Run ingest
+      #   run: make ingest
 
       - name: Run tests in backend container
         run: make test
