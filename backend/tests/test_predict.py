@@ -1,37 +1,21 @@
-from datetime import datetime
-from unittest.mock import MagicMock, patch
-
-import mlflow
-import numpy as np
-import pandas as pd
 import pytest
-from sklearn.linear_model import LinearRegression
+from unittest.mock import patch, MagicMock
+from datetime import datetime
+import pandas as pd
 
-from backend.src.db.postgres.crud.model_save import ModelMetadata
-from backend.src.inference.predict import Predictor
-
-
-@pytest.fixture
-def sample_model_uri(tmp_path) -> str:
-    model = LinearRegression()
-    X = np.random.rand(10, 2)
-    y = np.random.rand(10)
-    model.fit(X, y)
-
-    # 儲存到臨時資料夾
-    model_path = tmp_path / "test_model"
-    mlflow.sklearn.save_model(model, path=str(model_path))
-    return f"{model_path}"  # 可直接被 load_model 使用
+from src.inference.predict import Predictor
+from src.db.postgres.crud.model_available import ModelMetadata
 
 
 @pytest.fixture
-def sample_model_meta(sample_model_uri):
+def sample_model_meta():
+    # 建立一個簡單的 ModelMetadata
     return ModelMetadata(
         id=1,
         ticker="AAPL",
         features=["MA5", "MA10"],
         model_type="xgboost",
-        model_uri=str(sample_model_uri),  # 這裡是 fixture 回傳值，轉成字串
+        model_uri="fake_model_uri",
         train_start_date=datetime(2025, 1, 1),
         train_end_date=datetime(2025, 6, 30),
     )
@@ -41,7 +25,7 @@ def sample_model_meta(sample_model_uri):
 def sample_df():
     return pd.DataFrame(
         {
-            "Date": pd.date_range(start="2025-07-01", periods=1),
+            "Date": pd.date_range("2025-07-01", periods=1),
             "Close": [150],
             "MA5": [148],
             "MA10": [147],
@@ -56,37 +40,49 @@ def mock_model():
     return mock
 
 
-@patch("src.predict.client.insert_df")
-@patch("src.predict.get_close_price")
-@patch("src.predict.load_stock_data")
-@patch("src.predict.get_last_available_date")
-@patch("src.predict.mlflow.sklearn.load_model")
-@patch("src.predict.list_models")
+@patch("src.inference.predict.create_clickhouse_table")
+@patch("src.inference.predict.list_models")
+@patch("src.inference.predict.mlflow.sklearn.load_model")
+@patch("src.inference.predict.get_last_available_date")
+@patch("src.inference.predict.load_stock_data")
+@patch("src.inference.predict.get_close_price")
 def test_predict_next_close(
-    mock_list_models,
-    mock_load_model,
-    mock_get_last_date,
-    mock_load_data,
     mock_get_close_price,
-    mock_insert_df,
+    mock_load_stock_data,
+    mock_get_last_available_date,
+    mock_load_model,
+    mock_list_models,
+    mock_create_table,
     sample_model_meta,
     sample_df,
     mock_model,
 ):
-    # Arrange
+    # arrange
     mock_list_models.return_value = [sample_model_meta]
     mock_load_model.return_value = mock_model
-    mock_get_last_date.return_value = datetime(2025, 7, 2)
-    mock_load_data.return_value = sample_df
+    mock_get_last_available_date.return_value = datetime(2025, 7, 2)
+    mock_load_stock_data.return_value = sample_df
     mock_get_close_price.return_value = pd.DataFrame({"Close": [151.0]})
 
-    # Act
+    # act
     predictor = Predictor("AAPL", "US")
-    result, actual_close, msg, model_id = predictor.predict_next_close(
+    pred_price, actual_close, msg, model_id = predictor.predict_next_close(
         "2025-07-03 00:00:00"
     )
 
-    # Assert
-    assert isinstance(result, float)
-    assert result == 152.5
-    mock_insert_df.assert_called_once()
+    # assert
+    assert pred_price == 152.5
+    assert actual_close == 151.0
+    assert "✅ 取得交易資料區間" in msg
+    assert model_id == sample_model_meta.id
+    mock_create_table.assert_called_once()
+    mock_load_model.assert_called_once_with(sample_model_meta.model_uri)
+
+
+@patch("src.inference.predict.create_clickhouse_table")
+@patch("src.inference.predict.list_models")
+def test_init_no_models(mock_list_models, mock_create_table):
+    mock_list_models.return_value = []
+    with pytest.raises(ValueError):
+        Predictor("AAPL", "US")
+    mock_create_table.assert_called_once()

@@ -1,4 +1,4 @@
-from backend.src.db.clickhouse.reader import load_stock_data
+from src.db.clickhouse.reader import load_stock_data
 
 
 def test_load_stock_data():

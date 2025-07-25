@@ -175,7 +175,7 @@ monitor: ## 模擬監控
 # ========================
 
 test: ## 單元測試
-	$(DOCKER_COMPOSE) $(COMPOSE_CORE) exec $(TRAIN_BACKEND) pytest -v tests/test_train.py
+	$(DOCKER_COMPOSE) $(COMPOSE_CORE) exec $(TRAIN_BACKEND) pytest -v tests
 
 quality_checks: ## 程式碼風格檢查（isort / black / pylint）
 	isort .
@@ -183,7 +183,7 @@ quality_checks: ## 程式碼風格檢查（isort / black / pylint）
 	pylint backend/src || true
 
 integration_test: ## 整合測試
-	$(COMPOSE_BACKEND) exec $(PREDICT_BACKEND) pytest integraton-test/test_predict_api.py
+	$(DOCKER_COMPOSE) $(COMPOSE_CORE) exec $(PREDICT_BACKEND) pytest integraton-test
 
 pipeline: quality_checks test train predict ## 模型完整開發流程
 

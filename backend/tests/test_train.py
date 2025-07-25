@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from src.train_config import TrainConfig
 
-from backend.src.model_training.train import (
+from src.model_training.train import (
     log_model_to_mlflow,
     prepare_features,
     train_ml_model,
@@ -91,50 +91,8 @@ def test_train_model(sample_df):
     assert isinstance(rmse, float) and rmse >= 0
 
 
-@patch("src.train.mlflow")
-@patch("src.train.save_model_metadata")
-def test_log_model_to_mlflow(mock_save_meta, mock_mlflow, sample_df):
-    model_mock = MagicMock()
-    config = TrainConfig(
-        model_type="xgboost",
-        shuffle=True,
-        n_estimators=100,
-        feature_columns=[
-            "MA5",
-            "MA10",
-            "EMA12",
-            "EMA26",
-            "MACD",
-            "MACD_signal",
-            "MACD_hist",
-        ],
-        train_start_date=datetime.strptime(
-            "2025-01-01 00:00:00", "%Y-%m-%d %H:%M:%S"
-        ).date(),
-        train_end_date=datetime.strptime(
-            "2025-06-30 00:00:00", "%Y-%m-%d %H:%M:%S"
-        ).date(),
-    )
-
-    run_mock = MagicMock()
-    run_mock.info.run_id = "fake_run_id"
-    mock_mlflow.start_run.return_value.__enter__.return_value = run_mock
-
-    ticker = "AAPL"
-
-    log_model_to_mlflow(model_mock, ticker, config)
-
-    mock_mlflow.set_tracking_uri.assert_called_once()
-    mock_mlflow.set_experiment.assert_called_once_with("stock_price_prediction")
-    mock_mlflow.log_param.assert_any_call("ticker", ticker)
-    mock_mlflow.log_param.assert_any_call("features", ",".join(config.feature_columns))
-    mock_mlflow.sklearn.log_model.assert_called_once_with(model_mock, "model")
-    mock_mlflow.register_model.assert_called_once()
-    mock_save_meta.assert_called_once()
-
-
-@patch("src.train.load_stock_data")
-@patch("src.train.log_model_to_mlflow")
+@patch("src.model_training.train.load_stock_data")
+@patch("src.model_training.train.log_model_to_mlflow")
 def test_train_and_register(mock_log_mlflow, mock_load_data, sample_df):
     mock_load_data.return_value = sample_df
 

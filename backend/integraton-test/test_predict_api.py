@@ -23,7 +23,7 @@ async def test_create_prediction_success():
     ):
 
         mock_predictor = MockPredictor.return_value
-        mock_predictor.predict_next_close.return_value = (123.45, 120.00, "OK")
+        mock_predictor.predict_next_close.return_value = (123.45, 120.00, "OK", 1)
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
