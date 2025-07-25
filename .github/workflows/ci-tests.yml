@@ -23,105 +23,44 @@ jobs:
 
       - name: Run quality checks
         run: make quality_checks
+test:
+    needs: lint
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:25-dind
+        options: --privileged
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # test:
-  #   needs: lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Set up Docker Compose
-  #       run: docker compose version
+      - name: Create volumes & network
+        run: make init
 
-  #     - name: Init volume folders
-  #       run: |
-  #         mkdir -p db/mlflow_db db/oltp db/model_meta_db db/olap
-  #         mkdir -p data/mlflow_artifacts data/prometheus_data data/minio
+      - name: Start core services
+        run: make up-core
 
-  #     - name: Start all services
-  #       run: docker compose up -d --build
+      - name: Start nginx services
+        run: make up-frontend
 
-  #     - name: Wait for services to be ready (all core services)
-  #       run: |
-  #         echo "⏳ 等待所有服務啟動中..."
+      - name: Start monitor services
+        run: make up-monitor
 
-  #         wait_for_http_service() {
-  #           local name="$1"
-  #           local url="$2"
-  #           for i in {1..30}; do
-  #             if curl -s -L --fail "$url" > /dev/null; then
-  #               echo "✅ $name is up: $url"
-  #               return 0
-  #             fi
-  #             echo "⏳ Waiting for $name... ($i/30)"
-  #             sleep 2
-  #           done
-  #           echo "❌ $name did not become ready: $url"
-  #           return 1
-  #         }
+      - name: Wait for all core services
+        run: bash scripts/wait_for_services.sh
 
-  #         wait_for_redis() {
-  #           for i in {1..30}; do
-  #             if docker compose exec redis redis-cli ping | grep -q PONG; then
-  #               echo "✅ Redis is up"
-  #               return 0
-  #             fi
-  #             echo "⏳ Waiting for Redis... ($i/30)"
-  #             sleep 2
-  #           done
-  #           echo "❌ Redis did not become ready"
-  #           return 1
-  #         }
+      - name: Run ingest
+        run: make ingest
 
-  #         wait_for_postgres() {
-  #           local name="$1"
-  #           local service="$2"
-  #           for i in {1..30}; do
-  #             if docker compose exec "$service" pg_isready -U user > /dev/null 2>&1; then
-  #               echo "✅ $name is up"
-  #               return 0
-  #             fi
-  #             echo "⏳ Waiting for $name... ($i/30)"
-  #             sleep 2
-  #           done
-  #           echo "❌ $name did not become ready"
-  #           return 1
-  #         }
+      - name: Run tests in backend container
+        run: make test
 
-  #         # HTTP 服務
-  #         wait_for_http_service "Backend1"     http://localhost:8001/docs
-  #         wait_for_http_service "Backend2"     http://localhost:8002/docs
-  #         wait_for_http_service "MLflow"      http://localhost:5010
-  #         wait_for_http_service "ClickHouse"  http://localhost:8123/ping
-  #         wait_for_http_service "MinIO"       http://localhost:9001
-  #         wait_for_http_service "Grafana"     http://localhost:3002
-  #         # wait_for_http_service "Prometheus" http://localhost:9090/-/ready
+      - name: Run integration tests
+        run: make integration_test
 
-
-  #         # Redis
-  #         wait_for_redis
-
-  #         # PostgreSQL
-  #         wait_for_postgres "Raw DB" raw_db
-  #         wait_for_postgres "Model Meta DB" model_meta_db
-  #         wait_for_postgres "MLflow DB" mlflow-db
-
-  #         echo "✅ 所有服務啟動完成"
-
-  #     - name: Show Prometheus logs (debug)
-  #       run: docker compose logs prometheus
-
-  #     - name: Run all (init, up, ingest)
-  #       run: make all
-
-  #     - name: Run tests in backend container
-  #       run: make test
-
-
-  #     - name: Run integration tests
-  #       run: make integration_test
-
-  #     - name: Tear down services
-  #       if: always()
-  #       run: docker compose down --volumes
+      - name: Tear down services
+        if: always()
+        run: make down-all

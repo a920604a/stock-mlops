@@ -213,6 +213,13 @@ dev-setup: ## 本地開發快速重來（停監控 → reset 核心 → ingest �
 	$(MAKE) up-monitor
 
 
+down-all:
+	$(MAKE) down-monitor
+	$(MAKE) down-frontend
+	$(MAKE) down-core
+	$(MAKE) clean
+
+
 # make up-core
 # make up-frontend
 # make up-monitor
