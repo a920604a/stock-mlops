@@ -23,7 +23,7 @@ jobs:
 
       - name: Run quality checks
         run: make quality_checks
-test:
+  test:
     needs: lint
     runs-on: ubuntu-latest
     services:
