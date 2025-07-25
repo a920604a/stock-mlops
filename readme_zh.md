@@ -68,30 +68,87 @@ The goal of this project is to apply everything we have learned in this course t
 ## 🖥️ System Architecture (Mermaid)
 ```mermaid
 graph TD
-  subgraph 使用者操作
-    A[Frontend<br>React]
-    A -->|HTTP Request| B[Backend<br>FastAPI]
+  %% User Request Flow
+  U[User Browser] -->|HTTP/WS Requests| NG[Nginx<br>Static + Reverse Proxy]
+
+  %% Nginx Reverse Proxy
+  subgraph Nginx Proxy
+    NG -->|/api/predict| UP1
+    NG -->|/api/train| UP2
+    NG -->|/api/| UP3
+    NG -->|/ws| W
+    NG -->|Static files<br>/index.html, /js, /css...| Static[React Build]
   end
 
-  subgraph 即時推論系統
-    B -->|查詢資料| D[PostgreSQL]
-    B -->|快取查詢| E[Redis]
-    B -->|呼叫| C[Model Runner<br>載入模型 + 預測]
+  %% Upstream Load Balancing Description
+  subgraph Upstream Pools
+    direction TB
+    UP1["backend_predict<br>70% to backend1<br>30% to backend2"]
+    UP2["backend_train<br>30% to backend1<br>70% to backend2"]
+    UP3["backend_api<br>1:1 to backend1, backend2"]
   end
 
-  subgraph 批次處理與訓練
-    F[Workflow<br>Prefect]
-    F -->|執行| G[ETL/Train<br>Data + Model]
-    G -->|記錄結果| H[MLflow Registry]
-    G -->|更新資料庫| D
+  %% Backend API (expanded containers)
+  subgraph B[Backend API multiple containers]
+    B1[backend1:8000]
+    B2[backend2:8000]
   end
 
-  subgraph 模型監控系統
-    I[monitor.py<br>Evidently Exporter]
-    I -->|Metrics| J[Prometheus]
-    J -->|資料來源| K[Grafana Dashboard]
-    I -->|監控歷史資料| D
+  UP1 --> B1
+  UP1 --> B2
+  UP2 --> B1
+  UP2 --> B2
+  UP3 --> B1
+  UP3 --> B2
+
+  %% Backend Interactions
+  B1 -->|Query cleaned data| D2[(OLAP<br>ClickHouse)]
+  B2 -->|Query cleaned data| D2
+  B1 -->|Cache query| E[Redis]
+  B2 -->|Cache query| E
+
+  B1 -->|Submit training task| L[Celery Worker]
+  B2 -->|Submit training task| L
+  B1 -->|Push prediction request| N1[Kafka - prediction topic]
+  B2 -->|Push prediction request| N1
+
+  %% Data and ETL Process
+  subgraph Data and ETL
+    P[Prefect Workflow<br>backend/src/workflows] -->|ETL processing| D1[(raw_db<br>PostgreSQL)]
+    P -->|Cleaned data| D2
   end
+
+  %% Training and Inference
+  subgraph Model Training
+    L -->|Read cleaned data| D2
+    L -->|Execute training| G[Model training logic]
+    G -->|Model version management| H[MLflow Registry]
+    G -->|Update model metadata| D3[(mlflow-db<br>PostgreSQL)]
+    H -->|Model Artifact| S[(MinIO<br>Model storage)]
+  end
+
+  %% MLflow Internal DB
+  subgraph MLflow Internal
+    H --> D4[(mlflow internal DB<br>PostgreSQL)]
+  end
+
+  %% Monitoring and Real-time Push
+  subgraph Monitoring and Push
+    W[ws_monitor<br>Kafka Consumer + WebSocket]
+    Q[metrics_publisher<br>Fetch & send to Kafka every 5s]
+    N1 -->|Prediction result| W
+    N2[Kafka - metrics topic]
+    Q --> N2
+    N2 -->|Metrics| W
+    J[Prometheus]
+    J -->|Historical data| K[Grafana Dashboard]
+  end
+
+  %% Async Task Queue
+  subgraph Asynchronous Tasks
+    L[Celery Worker] <---> M[Redis Broker]
+  end
+
 ```
 
 

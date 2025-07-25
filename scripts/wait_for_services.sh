@@ -6,12 +6,12 @@ echo "⏳ 等待所有核心服務啟動..."
 wait_for_http_service() {
   local name="$1"
   local url="$2"
-  for i in {1..30}; do
+  for i in {1..10}; do
     if curl -s -L --fail "$url" > /dev/null; then
       echo "✅ $name is up: $url"
       return 0
     fi
-    echo "⏳ Waiting for $name... ($i/30)"
+    echo "⏳ Waiting for $name... ($i/10)"
     sleep 3
   done
   echo "❌ $name did not become ready: $url"
@@ -54,7 +54,7 @@ wait_for_http_service "MLflow"     http://localhost:5010
 wait_for_http_service "ClickHouse" http://localhost:8123/ping
 wait_for_http_service "MinIO"      http://localhost:9001
 wait_for_http_service "Grafana"    http://localhost:3002
-wait_for_http_service "Prometheus" http://localhost:9090/-/ready
+# wait_for_http_service "Prometheus" http://localhost:9090/-/ready
 
 wait_for_redis
 wait_for_postgres "Raw DB" raw_db
