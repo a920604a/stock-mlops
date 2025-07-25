@@ -1,9 +1,7 @@
 // frontend/src/api/models.js
 import axios from 'axios';
+import { BASE_URL } from "./config";
 
-// 後端 FastAPI 的基礎 URL
-// 根據您的環境，這可能是 'http://localhost:8000' 或 'http://backend:8001'
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8001/api";
 
 /**
  * 從後端獲取所有模型元數據。
@@ -106,7 +104,7 @@ export const fetchTrainStatus = async (taskId) => {
 export const submitTrainJob = async (modelId) => {
   try {
     // 假設後端需要接收 modelId，可以改成適合你的結構
-    const response = await axios.post(`${BASE_URL}/train`, { model_id: modelId });
+    const response = await axios.post(`${BASE_URL}/train/`, { model_id: modelId });
     return response.data.task_id;  // 從物件取出 task_id 字串或數字
   } catch (error) {
     console.error("API 提交訓練任務失敗:", error);

@@ -51,6 +51,7 @@ def create_model_metadata(
 
 @router.get("/models/", response_model=List[ModelMetadataResponse])
 def read_models_metadata(skip: int = 0, limit: int = 100):
+    print(f"Fetching models with skip={skip}, limit={limit}")
     model_dict_list = get_models(skip=skip, limit=limit)
     return [ModelMetadataResponse(**m) for m in model_dict_list]
 

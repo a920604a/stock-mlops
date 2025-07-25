@@ -43,6 +43,7 @@
 * **Prometheus 與 Grafana** 組合用於即時監控系統狀態與模型表現。
 * **ClickHouse** HTTP 介面可以直接用瀏覽器測試 SQL 查詢，也可透過 BI 工具連線。
 * **MinIO** 是物件儲存服務，主要給 MLflow 用來存放模型 artifact。
+* **nginx** Static File Server, everse Proxy Server
 
 
 | 特性     | **Celery**       | **Kafka**               |

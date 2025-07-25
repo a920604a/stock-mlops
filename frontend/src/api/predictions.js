@@ -1,7 +1,6 @@
 // frontend/src/api/predictions.js
 import axios from 'axios';
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8002/api";
-
+import { BASE_URL } from "./config";
 
 // 假設預測 API
 export const submitPredictJob = async (ticker, exchange, target_date) => {

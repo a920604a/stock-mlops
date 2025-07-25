@@ -113,5 +113,7 @@ class Predictor:
 if __name__ == "__main__":
 
     predictor = Predictor("AAPL", "US")
-    pred_price, actual_close, msg = predictor.predict_next_close("2025-07-03 00:00:00")
+    pred_price, actual_close, msg, model_id = predictor.predict_next_close(
+        "2025-07-03 00:00:00"
+    )
     print(msg)
