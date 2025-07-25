@@ -3,6 +3,7 @@ import axios from 'axios'
 import {
   Box, Heading, Input, Button, VStack, Alert, AlertIcon, useToast, List, ListItem
 } from '@chakra-ui/react'
+import { WS_URL } from "../api/config";
 
 export default function PredictForm() {
   const [ticker, setTicker] = useState('')
@@ -14,7 +15,7 @@ export default function PredictForm() {
 
   // WebSocket 連線，接收即時推播結果
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8010/ws/predictions")
+    const ws = new WebSocket(`${WS_URL}/predictions`);
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)

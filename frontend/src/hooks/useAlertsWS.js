@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@chakra-ui/react";
+import { WS_URL } from "../api/config";
 
 export function useAlertsWS() {
     const [alerts, setAlerts] = useState([]);
@@ -9,7 +10,8 @@ export function useAlertsWS() {
     useEffect(() => {
         if (wsRef.current) return; // 避免重複初始化
 
-        const ws = new WebSocket("ws://localhost:8010/ws/alerts");
+        const ws = new WebSocket(`${WS_URL}/alerts`);
+
         wsRef.current = ws;
 
         ws.onopen = () => console.log("WebSocket connected (alerts)");

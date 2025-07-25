@@ -12,6 +12,7 @@ import DeleteConfirmDialog from './DeleteConfirmDialog';
 import ModelDetailModal from './ModelDetailModal';
 import { trainModel, predictModel } from './ModelActions';
 import PredictDateModal from './PredictDateModal';
+import { WS_URL } from "../api/config";
 
 
 export default function ModelList({ showToast }) {
@@ -63,7 +64,8 @@ export default function ModelList({ showToast }) {
   }, []);
 
     useEffect(() => {
-      const ws = new WebSocket("ws://localhost:8010/ws/predictions");
+
+      const ws = new WebSocket(`${WS_URL}/predictions`);
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         setPredictions((prev) => [data, ...prev]);

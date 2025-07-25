@@ -20,6 +20,11 @@ app.websocket("/ws/alerts")(websocket_alerts_endpoint)
 create_clickhouse_table()
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("[App] Starting Kafka consumers")

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { WS_URL } from "../api/config";
 
 export function useMetricsWS(maxPoints = 50) {
     const [cpuData, setCpuData] = useState([]);
@@ -16,7 +17,7 @@ export function useMetricsWS(maxPoints = 50) {
     };
 
     useEffect(() => {
-        const ws = new WebSocket("ws://localhost:8010/ws/metrics");
+        const ws = new WebSocket(`${WS_URL}/metrics`);
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);

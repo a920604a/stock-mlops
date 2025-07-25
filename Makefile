@@ -206,6 +206,7 @@ all: init up-core ingest ## 與傳統 all 同義
 
 dev-setup: ## 本地開發快速重來（停監控 → reset 核心 → ingest → 啟監控）
 	$(MAKE) down-monitor
+	$(MAKE) down-frontend
 	$(MAKE) reset
 	$(MAKE) ingest
 	$(MAKE) up-frontend
