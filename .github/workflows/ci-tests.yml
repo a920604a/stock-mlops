@@ -64,3 +64,51 @@ jobs:
       - name: Tear down services
         if: always()
         run: make down-all
+  
+  notify:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Discord
+        run: |
+          if [ "${{ needs.lint.result }}" == "failure" ]; then
+            curl -X POST -H "Content-Type: application/json" \
+              -d '{
+                    "content": "🚨 程式碼格式檢查失敗（Lint）！請盡速修正。",
+                    "embeds": [{
+                      "title": "❌ Lint Failure",
+                      "description": "Lint failed on branch `${{ github.ref_name }}`",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                      "color": 16711680,
+                      "footer": { "text": "觸發者：${{ github.actor }}" }
+                    }]
+                  }' \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
+          elif [ "${{ needs.test.result }}" == "failure" ]; then
+            curl -X POST -H "Content-Type: application/json" \
+              -d '{
+                    "content": "🚨 測試階段失敗！請檢查記錄。",
+                    "embeds": [{
+                      "title": "❌ Test Failure",
+                      "description": "Test failed on branch `${{ github.ref_name }}`",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                      "color": 16711680,
+                      "footer": { "text": "觸發者：${{ github.actor }}" }
+                    }]
+                  }' \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
+          else
+            curl -X POST -H "Content-Type: application/json" \
+              -d '{
+                    "content": "✅ CI 全部通過！🎉",
+                    "embeds": [{
+                      "title": "🎉 All Checks Passed",
+                      "description": "Lint 與測試皆成功，branch `${{ github.ref_name }}`",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                      "color": 3066993,
+                      "footer": { "text": "觸發者：${{ github.actor }}" }
+                    }]
+                  }' \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
+          fi

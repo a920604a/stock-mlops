@@ -56,3 +56,37 @@ jobs:
           file: ./Dockerfile.backend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stock-mlops-backend:latest
+  notify:
+    needs: [publish]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Discord
+        run: |
+          if [ "${{ needs.publish.result }}" == "failure" ]; then
+            curl -X POST -H "Content-Type: application/json" \
+              -d '{
+                    "content": "🚨 部署失敗！請立即查看記錄。",
+                    "embeds": [{
+                      "title": "❌ Deploy Failed",
+                      "description": "Docker 部署失敗，branch `${{ github.ref_name }}`",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                      "color": 16711680,
+                      "footer": { "text": "觸發者：${{ github.actor }}" }
+                    }]
+                  }' \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
+          else
+            curl -X POST -H "Content-Type: application/json" \
+              -d '{
+                    "content": "✅ 部署成功！🎉",
+                    "embeds": [{
+                      "title": "🚀 Deploy Successful",
+                      "description": "Docker 映像成功發佈，branch `${{ github.ref_name }}`",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                      "color": 3066993,
+                      "footer": { "text": "觸發者：${{ github.actor }}" }
+                    }]
+                  }' \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
+          fi
