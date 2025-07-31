@@ -2,6 +2,8 @@
 
 # Stock Price Prediction with MLOps
 
+
+[繁體中文版](./readme_zh.md)
 ## 🎯 Course Project
 
 ### Objective
@@ -49,6 +51,9 @@ Users can query predicted stock prices and historical trend charts through a web
 ├── monitor/                  # Prometheus & Grafana configurations
 ├── Dockerfile.*, docker-compose.yml
 ├── Makefile, setup.md, implementation_log.md
+├── .github/                  # GitHub Actions configuration
+│   └── workflows/            # GitHub Actions CI/CD workflow
+├── .pre-commit-config.yaml   # Pre-commit configuration
 ├── README.md
 ```
 
@@ -162,15 +167,17 @@ graph TD
 ### ☁️ Infrastructure
 
 * ✔️ Docker Compose setup with multiple services
-* ✔️ Cloud-ready and IaC-friendly (MinIO, DB volumes, Prometheus)
+* ✔️ IaC-friendly (MinIO, DB volumes, Prometheus)
 
 ### 🔬 Experiment Tracking
 
 * ✔️ MLflow for logging experiments and model versioning
+  - [here](backend/src/model_training/train.py)
 
 ### 📅 Workflow Orchestration
 
 * ✔️ Prefect 2 for ETL and training flows
+   - [here](./backend/workflows/etl_core.py)
 
 ### 🚀 Model Deployment
 
@@ -179,19 +186,35 @@ graph TD
 ### 📊 Monitoring
 
 * ✔️ Evidently + Prometheus + Grafana for data/model monitoring
+    - [docker-compose.monitor.yml](./docker-compose.monitor.yml)
+    - [docker-compose.kafka.yml](./docker-compose.kafka.yml)
+
+* [Webhook to discord](./.github/workflows/cd-deploy.yml)
 
 ### 🔁 Reproducibility
 
 * ✔️ Makefile + setup.md + requirements + Docker for consistent setup
+    ```
+    make dev-setup
+    ```
 
 ### 🧪 Best Practices
 
 * [x] Unit tests
+    - [train unit test code](./backend/tests/test_train.py)
+    - [predict unit test code](./backend/tests/test_predict.py)
 * [x] Integration tests
+    - [predict api test code](backend/integraton-test/test_predict_api.py)
+    - [train api test code](backend/integraton-test/test_train_api.py)
 * [x] Code formatting (black, flake8)
+    - [refer to pre-commit-config.yaml](.pre-commit-config.yaml)
 * [x] Makefile automation
+    - [refer to Makefile](./Makefile)
 * [x] Pre-commit hooks
+    - [refer to pre-commit-config.yaml](.pre-commit-config.yaml)
 * [x] GitHub Actions for CI
+    - [refer to .github/workflows/ci-tests.yml](.github/workflows/ci-tests.yml)
+    - [refer to .github/workflows/cd-deploy.yml](.github/workflows/cd-deploy.yml)
 
 ---
 

@@ -1,6 +1,8 @@
 
 # Stock Price Prediction with MLOps
 
+[English](./readme.md)
+
 ## 🎯 Course Project
 
 ### Objective
