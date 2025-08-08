@@ -156,6 +156,65 @@ graph TD
 
 ```
 
+- Visual diagram of the Docker Compose services
+```mermaid
+graph TD
+  subgraph Users
+    A[Browser]
+  end
+
+  subgraph Frontend
+    B[Vite + React]
+  end
+
+  subgraph Backend
+    C[FastAPI API]
+    D[Model Training / Inference]
+    E[Celery Worker]
+    F[Prefect Flows]
+  end
+
+  subgraph Storage
+    G[PostgreSQL as raw_db]
+    H[ClickHouse as cleaned data]
+    I[MinIO as Model Artifacts]
+    J[MLflow as Tracking DB]
+  end
+
+  subgraph Monitoring
+    K[Prometheus]
+    L[Grafana]
+    M[Evidently]
+  end
+
+  subgraph Messaging
+    N[Kafka]
+    O[Redis]
+  end
+
+  subgraph CI/CD
+    P[GitHub Actions]
+  end
+
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E --> G
+  E --> H
+  D --> J
+  D --> I
+  F --> G
+  F --> H
+  M --> K
+  K --> L
+  D --> N
+  M --> N
+  E --> O
+  P -->|CI/CD| C
+
+```
+
 ---
 
 ## 📈 Evaluation Checklist
