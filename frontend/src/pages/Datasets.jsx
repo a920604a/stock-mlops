@@ -88,6 +88,7 @@ export default function Datasets() {
         duration: 3000,
         isClosable: true,
       })
+      console.log("✅ 清空清單與表單")
 
       // ✅ 清空清單與表單
       setEtlList([])

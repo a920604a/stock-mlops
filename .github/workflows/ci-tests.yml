@@ -49,8 +49,8 @@ jobs:
       - name: Start monitor services
         run: make up-monitor
 
-      - name: Wait for all core services
-        run: bash scripts/wait_for_services.sh
+      # - name: Wait for all core services # Too waste time, so comment out
+      #   run: bash scripts/wait_for_services.sh
 
       # - name: Run ingest
       #   run: make ingest

@@ -3,6 +3,7 @@ import axios from "axios";
 import { BASE_URL } from "./config";
 
 export const fetchDatasets = async () => {
+  console.log(`${BASE_URL}/datasets`)
   const res = await axios.get(`${BASE_URL}/datasets`, {
   });
   return res.data;

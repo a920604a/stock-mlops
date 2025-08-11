@@ -149,7 +149,10 @@ frontend-build: ## 前端正式版編譯
 	cd $(FRONTEND_DIR) && npm install && npm run build
 
 ingest: ## 執行資料收集腳本
+	sleep 10
 	bash scripts/ingest.sh
+# 	$(DOCKER_COMPOSE) $(COMPOSE_CORE) exec $(PREDICT_BACKEND) python workflows/etl_script.py
+
 
 train: ## 執行模型訓練
 	@echo "🚀 執行模型訓練..."
