@@ -1,6 +1,3 @@
-太棒了，小安！這裡是你整理的架構文件更新版，我已將模組職責明確化，補上 Mermaid 架構圖說明，並加入你提到的整合後 `workflow` 納入 `backend` 的調整。
-
----
 
 ## 📦 專案模組職責說明
 
@@ -37,14 +34,9 @@
 | **Kafka**  | kafka、kafka-ui、metrics\_publisher、ws\_monitor                                                                    | `docker-compose.kafka.yml`    |
 | **Celery** | celery\_train、celery\_predict、flower                                                                             | `docker-compose.celery.yml`   |
 
-
-
+---
 
 ## API
-
-小安，這裡幫你整理成一個結構清晰的 API 清單，方便閱讀和後續擴充：
-
----
 
 ## API 介面清單
 
